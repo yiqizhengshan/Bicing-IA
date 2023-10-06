@@ -38,33 +38,33 @@ public class Main {
 
         Scanner in = new Scanner(System.in);
 
-        System.out.println("Escribe EASY o MEDIUM");
-        String s2 = in.nextLine();
-        System.out.println("Escribe EQUILIBRIUM o RUSH_HOUR");
-        String mode = in.nextLine();
+        System.out.println("Escribe 1 (EASY) o 2 (MEDIUM)");
+        int difficulty = in.nextInt();
+        System.out.println("Escribe 1 (EQUILIBRIUM) o 2 (RUSH_HOUR)");
+        int mode = in.nextInt();
         System.out.println("Dame el número de estaciones:");
-        int s = in.nextInt();
+        int E = in.nextInt();
         System.out.println("Dame el número de bicicletas:");
-        int b = in.nextInt();
+        int B = in.nextInt();
         System.out.println("Dame la semilla:");
         int seed = in.nextInt();
 
         Estaciones Est;
-        if (mode == "EQUILIBRIUM") {
-            Est = new Estaciones(s, b, Estaciones.EQUILIBRIUM, seed);
+        if (mode == 1) {
+            Est = new Estaciones(E, B, Estaciones.EQUILIBRIUM, seed);
         } else {
-            Est = new Estaciones(s, b, Estaciones.RUSH_HOUR, seed);
+            Est = new Estaciones(E, B, Estaciones.RUSH_HOUR, seed);
         }
+
         System.out.println("Dame el número de furgonetas:");
-        int f = in.nextInt();
+        int F = in.nextInt();
 
-        State initialState = new State(f, Est);
+        State initialState = new State(F, Est);
 
-        switch (s2) {
-            case "EASY":
-                initialState.initialize_easy();
-            case "MEDIUM":
-                initialState.initialize_medium();
+        if (difficulty == 1) {
+            initialState.initialize_easy();
+        } else {
+            initialState.initialize_medium();
         }
 
         // close the Scanner object
