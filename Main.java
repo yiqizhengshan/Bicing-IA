@@ -92,5 +92,4 @@ public class Main {
         // method getGoalState of class Search
 
     }
-
 }
