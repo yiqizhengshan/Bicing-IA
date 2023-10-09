@@ -21,6 +21,11 @@ public class State {
 
     /* Constructor */
 
+    //Hay que separar positivos con negativos con 2 vectores static
+    private static Estaciones estacionesPositivas;
+    private static Estaciones estacionesNegativas;
+
+
     public State(int n_van, Estaciones Est) {
         this.isStationVisited = new Boolean[Est.size()];
         initialize_supply(Est);
