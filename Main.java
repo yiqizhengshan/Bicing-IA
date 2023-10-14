@@ -57,12 +57,6 @@ public class Main {
             Est = new Estaciones(E, B, Estaciones.RUSH_HOUR, seed);
         }
 
-        //print est
-        System.out.println("Estaciones:");
-        for (int i = 0; i < E; ++i) {
-            System.out.println("Estación " + i + ": " + (Est.get(i).getDemanda() - Est.get(i).getNumBicicletasNext()));
-        }
-
         System.out.println("Dame el número de furgonetas:");
         int F = in.nextInt();
 
