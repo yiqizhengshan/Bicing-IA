@@ -128,6 +128,7 @@ public class State {
         // Condition: newOriginId != dest1Id && newOriginId != dest2Id and newOriginId has excess bikes
         // !Problem: how to handle the case where origin has no sufficient excess bikes for
         // both destinations?
+        
     }
     
 
@@ -355,6 +356,8 @@ public class State {
         System.out.println("benefit: " + benefit + " transportCost: " + transportCost + " suppliedDemand: " + suppliedDemand);
     }
 
+    /* Auxiliary functions */
+
     public double calcula_cost(int i, int j, int num_bicis) {
         int cost_km = (num_bicis+9)/10;
         int distance = getEuclideanDistance(stations.get(i).getCoordX(), stations.get(i).getCoordY(), stations.get(j).getCoordX(), stations.get(j).getCoordY());
@@ -362,7 +365,6 @@ public class State {
         return cost_km*distance;
     }
 
-    // Auxiliary functions
     private int getEuclideanDistance(int originX, int originY, int destX, int destY) {
         return Math.abs(destX - originX) + Math.abs(destY - originY);
     }
