@@ -6,8 +6,8 @@ import aima.search.framework.GraphSearch;
 import aima.search.framework.Problem;
 import aima.search.framework.Search;
 import aima.search.framework.SearchAgent;
-import aima.search.informed.AStarSearch;
-import aima.search.informed.IterativeDeepeningAStarSearch;
+import aima.search.informed.HillClimbingSearch;
+import aima.search.informed.SimulatedAnnealingSearch;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -82,7 +82,8 @@ public class Main {
 
         // Instantiate the search algorithm
         // AStarSearch(new GraphSearch()) or IterativeDeepeningAStarSearch()
-        Search alg = new AStarSearch(new GraphSearch());
+        Search alg = new HillClimbingSearch();
+
 
         // Instantiate the SearchAgent object
         SearchAgent agent = new SearchAgent(p, alg);
