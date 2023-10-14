@@ -10,8 +10,19 @@ public class BicingSuccesorFunction implements SuccessorFunction {
     public List getSuccessors(Object state) {
         ArrayList retval = new ArrayList();
         State board = (State) state;
-        // int F = State.getF();
-        // int E = State.getE();
+
+        int F = State.getF();
+        int E = State.getE();
+
+        int vanId = 2;
+
+        for (int destId2 = E - 3; destId2 < E; ++destId2) {
+            State copy = new State(board);
+            copy.changeDestination2(vanId, destId2);
+            retval.add(new Successor(new String("changeDestination2 " + vanId + " " + destId2), copy));
+        }
+        
+
 
         // for (int vanId = 0; vanId < F; ++vanId) {
         //     for (int originId = 0; originId < E; ++originId) {
@@ -29,6 +40,8 @@ public class BicingSuccesorFunction implements SuccessorFunction {
         //         }
         //     }
         // }
+
+    
         return (retval);
     }
 }
