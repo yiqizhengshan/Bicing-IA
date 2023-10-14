@@ -79,8 +79,9 @@ public class State {
         // Update transport cost from origin to dest1 (bikesTaken is the same, bc we come from origin)
         // Calculate the transport cost of the previous route
         double previousTransportCost1 = getVanTransportCost(originId, dest1Id, bikesTaken);
-        double previousTransportCost2 = getVanTransportCost(dest1Id, dest2Id, bikesTaken - numBikesLeftDest1);
-        // 
+        //Yiqi: He añadido un if por si solo tiene 1 destino
+        double previousTransportCost2 = 0;
+        if (dest2Id != -1) previousTransportCost2 = getVanTransportCost(dest1Id, dest2Id, bikesTaken - numBikesLeftDest1 /*numBikesLeftDest2*/);
         
         this.suppliedDemand -= numBikesLeftDest1 + numBikesLeftDest2;
 
@@ -90,7 +91,9 @@ public class State {
 
         
         double newTransportCost1 = getVanTransportCost(originId, newDestId, bikesTaken);
-        double newTransportCost2 = getVanTransportCost(newDestId, dest2Id, bikesTaken - numBikesLeftDest1);
+        //Yiqi: He añadido un if por si solo tiene 1 destino
+        double newTransportCost2 = 0;
+        if (dest2Id != -1) newTransportCost2 = getVanTransportCost(newDestId, dest2Id, bikesTaken - numBikesLeftDest1);
 
         this.transportCost = transportCost - (previousTransportCost1 + previousTransportCost2) + (newTransportCost1 + newTransportCost2);
 
@@ -128,7 +131,7 @@ public class State {
         // Condition: newOriginId != dest1Id && newOriginId != dest2Id and newOriginId has excess bikes
         // !Problem: how to handle the case where origin has no sufficient excess bikes for
         // both destinations?
-        
+
     }
     
 
