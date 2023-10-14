@@ -28,14 +28,9 @@ public class State {
         State.F = n_van;
         State.E = Est.size();
 
-        this.fleet = new int[n_van][6];
-        this.isStationVisited = new int[Est.size()];
-
-        for (int i = 0; i < State.E; ++i) {
-            this.isStationVisited[i] = -1;
-        }
-        
-        initialize_supply(Est);
+        initializeFleet();
+        initializeIsStationVisited();
+        initializeBikesNeeded();
 
         this.transportCost = 0;
         this.benefit = 0;
@@ -115,6 +110,9 @@ public class State {
 
         // Calculate new benefit
         this.benefit = (double) suppliedDemand - transportCost;
+
+        System.out.println("benefit: " + benefit + " transportCost: " + transportCost + " suppliedDemand: " + suppliedDemand);
+
     }
 
     public void changeDestination2(int vanId, int newDestId) {
@@ -177,6 +175,10 @@ public class State {
             // Calculate new benefit
             this.benefit = (double) suppliedDemand - transportCost;
         }
+
+        
+        System.out.println("benefit: " + benefit + " transportCost: " + transportCost + " suppliedDemand: " + suppliedDemand);
+
     }
 
     public void swapOrigin(int fleetId, int newOriginId) {
@@ -193,7 +195,7 @@ public class State {
 
     /* Heuristic function */
     public double heuristic() {
-        return this.benefit - this.transportCost;
+        return this.benefit;
     }
 
     /* Goal test */
@@ -202,7 +204,7 @@ public class State {
         // State does not have better successor states
     }
 
-    /* Getters */
+    /* ------------------- Getters ------------------- */
 
     public int[][] getFleet() {
         return this.fleet;
@@ -244,7 +246,7 @@ public class State {
         return F;
     }
 
-    /* Setters */
+    /* ------------------- Setters ------------------- */
     public void setFleet(final int[][] fleet) {
         int F = fleet.length;
         int numAttrib = fleet[0].length;
@@ -284,12 +286,28 @@ public class State {
         this.suppliedDemand = suppliedDemand;
     }
 
-    /* Initializers */
+    /* ------------------- Initializers ------------------- */
 
-    private void initialize_supply(Estaciones Est) {
-        this.bikesNeeded = new int[Est.size()];
-        for (int i = 0; i < Est.size(); i++) {
-            bikesNeeded[i] = (Est.get(i).getDemanda() - Est.get(i).getNumBicicletasNext());
+    private void initializeFleet() {
+        this.fleet = new int[State.F][6];
+        for (int i = 0; i < State.F; ++i) {
+            for (int j = 0; j < 6; ++j) {
+                this.fleet[i][j] = -1;
+            }
+        }
+    }
+
+    private void initializeIsStationVisited() {
+        this.isStationVisited = new int[State.E];
+        for (int i = 0; i < State.E; ++i) {
+            this.isStationVisited[i] = -1;
+        }
+    }
+
+    private void initializeBikesNeeded() {
+        this.bikesNeeded = new int[State.E];
+        for (int i = 0; i < State.E; i++) {
+            bikesNeeded[i] = (State.stations.get(i).getDemanda() - State.stations.get(i).getNumBicicletasNext());
             if (bikesNeeded[i] > 0) bikesNeeded[i] = bikesNeeded[i]%30;
         }
     }
@@ -325,7 +343,7 @@ public class State {
                 ++j;
             }
             
-            System.out.println("i: " + i + " j: " + j + " size_fleet: " + size_fleet);
+            //System.out.println("i: " + i + " j: " + j + " size_fleet: " + size_fleet);
 
             //se usa de origen?
             if (isStationVisited[i] == -1) {
