@@ -62,7 +62,8 @@ public class State {
         // If we want to eliminate 1st destination, we can't have a
         // second destination
         if (newDestId == -1 && dest2Id != -1) return;
-        System.out.print("!Applying changeDest1 operator!\n");
+
+        // System.out.print("!Applying changeDest1 operator!\n");
 
         // Reset transport cost
         double previousTransportCost1 = 0;
@@ -111,8 +112,9 @@ public class State {
         // Calculate new benefit
         this.benefit = (double) suppliedDemand - transportCost;
 
-        System.out.print("!Operator changeDest1 applied!\n");
-        printState();
+        // System.out.print("!Operator changeDest1 applied!\n");
+
+        // printState();
     }
 
     public void changeDestination2(int vanId, int newDestId) {
@@ -124,7 +126,7 @@ public class State {
         int numBikesLeftDest2 = fleet[vanId][5];
         Boolean newDestNeedsBikes = bikesNeeded[newDestId] > 0;
 
-        System.out.print("!Applying changeDest2 operator!\n");
+        // System.out.print("!Applying changeDest2 operator!\n");
         // System.out.print("----Applying operator changeDestination: " + vanId + " " + newDestId + "----\n");
         // System.out.print("Operator not applied\n");
         // printVan(vanId);
@@ -180,8 +182,8 @@ public class State {
         }
 
         // Print fleet
-        System.out.print("changeDest2 applied!\n");
-        printState();
+        // System.out.print("changeDest2 applied!\n");
+        // printState();
     }
 
     public void swapOrigin(int fleetId, int newOriginId) {
@@ -211,7 +213,7 @@ public class State {
         int dest2Id2 = fleet[fleet2Id][4];
         int numBikesLeftDest22 = fleet[fleet2Id][5];
 
-        System.out.print("!Applying swapOrigin operator!\n");
+        // System.out.print("!Applying swapOrigin operator!\n");
 
         // Reset transport cost of both vans
         double previousTransportCost1 = 0;
@@ -345,13 +347,13 @@ public class State {
         double newTransportCost1 = 0;
         if (dest1Id != -1) newTransportCost1 = getVanTransportCost(originId2, dest1Id, bikesTaken);
         double newTransportCost2 = 0;
-        if (dest2Id != -1) newTransportCost2 = getVanTransportCost(dest1Id, dest2Id, bikesTaken - numBikesLeftDest1);
+        if (dest2Id != -1 && dest1Id != -1) newTransportCost2 = getVanTransportCost(dest1Id, dest2Id, bikesTaken - numBikesLeftDest1);
         this.transportCost += (newTransportCost1 + newTransportCost2);
 
         double newTransportCost12 = 0;
         if (dest1Id2 != -1) newTransportCost12 = getVanTransportCost(originId, dest1Id2, bikesTaken2);
         double newTransportCost22 = 0;
-        if (dest2Id2 != -1) newTransportCost22 = getVanTransportCost(dest1Id2, dest2Id2, bikesTaken2 - numBikesLeftDest12);
+        if (dest2Id2 != -1 && dest1Id2 != -1) newTransportCost22 = getVanTransportCost(dest1Id2, dest2Id2, bikesTaken2 - numBikesLeftDest12);
         this.transportCost += (newTransportCost12 + newTransportCost22);
 
         // Update supplied demand
@@ -364,8 +366,8 @@ public class State {
         // Calculate new benefit
         this.benefit = (double) suppliedDemand - transportCost;
 
-        System.out.print("!Operator swapOrigin applied!\n");
-        printState();
+        // System.out.print("!Operator swapOrigin applied!\n");
+        // printState();
     }
 
     public void changeOrigin(int fleetId, int newOriginId) {
@@ -383,7 +385,7 @@ public class State {
         //can't change if newOriginId has fleet, or if it's the same origin, or if it's the same dest1, or if it's the same dest2, or it has no excess bikes
         if (newOriginId == originId || newDestNeedsBikes || newOriginId == -1 || newOriginId == dest1Id || newOriginId == dest2Id || isStationVisited[newOriginId] != -1) return;
 
-        System.out.print("!Applying changeOrigin operator!\n");
+        // System.out.print("!Applying changeOrigin operator!\n");
 
         // Reset transport cost
         double previousTransportCost1 = 0;
@@ -468,8 +470,8 @@ public class State {
         // Calculate new benefit
         this.benefit = (double) suppliedDemand - transportCost;
 
-        System.out.print("!Operator swapOrigin applied!\n");
-        printState();
+        // System.out.print("!Operator swapOrigin applied!\n");
+        // printState();
     }
 
     public void no_cojer_tantas_biciletas(int originid, int dest1Id, int dest2Id) {
@@ -591,13 +593,22 @@ public class State {
     private void initializeBikesNeeded() {
         this.bikesNeeded = new int[State.E]; //E = num estaciones
         for (int i = 0; i < State.E; i++) {
-            int aux = State.stations.get(i).getDemanda() - State.stations.get(i).getNumBicicletasNext();
-            if (aux > 0) { // no cumplo la demanda de la hora siguiente con bicis next
-                int sobran = aux - State.stations.get(i).getNumBicicletasNoUsadas();
-                bikesNeeded[i] = sobran;
+            // int aux = State.stations.get(i).getDemanda() - State.stations.get(i).getNumBicicletasNext();
+            // if (aux > 0) { // no cumplo la demanda de la hora siguiente con bicis next
+            //     int sobran = aux - State.stations.get(i).getNumBicicletasNoUsadas();
+            //     bikesNeeded[i] = sobran;
+            // }
+            // else { //si cumplo la demanda de la hora siguiente con bicis next
+            //     bikesNeeded[i] = Math.max(-State.stations.get(i).getNumBicicletasNoUsadas(), -30);
+            // }
+
+            //positivo si sobran, negativo si faltan
+            int bicis_sobran = State.stations.get(i).getNumBicicletasNext() - State.stations.get(i).getDemanda();
+            if (bicis_sobran > 0) {
+                bikesNeeded[i] = -Math.min(Math.min(State.stations.get(i).getNumBicicletasNoUsadas(), bicis_sobran), 30);
             }
-            else { //si cumplo la demanda de la hora siguiente con bicis next
-                bikesNeeded[i] = Math.max(-State.stations.get(i).getNumBicicletasNoUsadas(), -30);
+            else {
+                bikesNeeded[i] = -bicis_sobran;
             }
         }
     }
@@ -642,7 +653,7 @@ public class State {
             i = 0;
             j = 0;
 
-            printBikesNeeded();
+            // printBikesNeeded();
 
             //llegas al primer negativo
             while (i < E && bikesNeeded[i] >= 0) {
@@ -728,7 +739,7 @@ public class State {
         //set benefit
         benefit = suppliedDemand - transportCost;
 
-        printState();
+        // printState();
     }
 
     /* Auxiliary functions */
