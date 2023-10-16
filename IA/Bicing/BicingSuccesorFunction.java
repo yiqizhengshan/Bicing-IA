@@ -20,13 +20,15 @@ public class BicingSuccesorFunction implements SuccessorFunction {
                 State copy = new State(board);
                 copy.changeDestination2(vanId, destId2);
                 double benefit = copy.getBenefit();
-                retval.add(new Successor(new String("changeDestination2 " + vanId + " " + destId2 + " benefit: " + benefit), copy));
+                double transportCost = copy.getTransportCost();
+                retval.add(new Successor(new String("changeDestination2 " + vanId + " " + destId2 + " benefit: " + benefit + " transportCost: " + transportCost), copy));
             }
             for (int destId1 = 0; destId1 < E; ++destId1) {
                 State copy = new State(board);
                 copy.changeDestination1(vanId, destId1);
                 double benefit = copy.getBenefit();
-                retval.add(new Successor(new String("changeDestination1 " + vanId + " " + destId1 + " benefit: " + benefit), copy));
+                double transportCost = copy.getTransportCost();
+                retval.add(new Successor(new String("changeDestination1 " + vanId + " " + destId1 + " benefit: " + benefit + " transportCost: " + transportCost), copy));
             }
         }
     

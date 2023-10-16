@@ -310,8 +310,14 @@ public class State {
     private void initializeBikesNeeded() {
         this.bikesNeeded = new int[State.E];
         for (int i = 0; i < State.E; i++) {
-            bikesNeeded[i] = (State.stations.get(i).getDemanda() - State.stations.get(i).getNumBicicletasNext());
-            bikesNeeded[i] = Math.max(bikesNeeded[i], -30);
+            int aux = State.stations.get(i).getDemanda() - State.stations.get(i).getNumBicicletasNext();
+            if (aux > 0) { // no cumplo la demanda de la hora siguiente con bicis next
+                int sobran = State.stations.get(i).getNumBicicletasNoUsadas() - aux;
+                bikesNeeded[i] = -sobran;
+            }
+            else {
+                bikesNeeded[i] = Math.max(-State.stations.get(i).getNumBicicletasNoUsadas(), -30);
+            }
         }
     }
 
@@ -367,7 +373,7 @@ public class State {
             }
             
             if (i == E || j == E) continue;
-            System.out.println(E + " " + i + " " + j + " " + size_fleet);
+            //System.out.println(E + " " + i + " " + j + " " + size_fleet);
             
             // System.out.println("i: " + i + " j: " + j + " size_fleet: " + size_fleet);
             
@@ -450,7 +456,7 @@ public class State {
         int cost_km = (num_bicis+9)/10;
         int distance = getEuclideanDistance(stations.get(i).getCoordX(), stations.get(i).getCoordY(), stations.get(j).getCoordX(), stations.get(j).getCoordY());
         distance = distance/1000;
-        return cost_km*distance;
+        return cost_km*distance*0;
     }
 
     private int getEuclideanDistance(int originX, int originY, int destX, int destY) {
@@ -463,7 +469,7 @@ public class State {
         int distance = getEuclideanDistance(origin.getCoordX(), origin.getCoordY(), dest.getCoordX(), dest.getCoordY());
         int cost_km = (bikesTaken+9)/10;
         distance /= 1000;
-        return cost_km*distance;
+        return cost_km*distance*0;
     }
 
     private void printVan(int vanId) {
