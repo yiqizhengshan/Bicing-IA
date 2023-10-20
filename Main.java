@@ -62,11 +62,20 @@ public class Main {
 
         State initialState = new State(F, Est);
 
+        //print bikesNeeded
+        for (int i = 0; i < initialState.getBikesNeeded().length; ++i) {
+            System.out.println("bikesNeeded[" + i + "]: " + initialState.getBikesNeeded()[i]);
+        }
+
         if (difficulty == 1) {
             initialState.initialize_easy();
         } else {
             initialState.initialize_medium();
         }
+
+        //print bikesNeeded after initialize
+        String FleetState = initialState.getFleetState();
+        System.out.println(FleetState);
 
         // close the Scanner object
         in.close();
