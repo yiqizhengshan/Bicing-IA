@@ -6,8 +6,7 @@ import java.util.ArrayList;
  * Created by bejar on 17/01/17.
  */
 public class State {
-    // originId, bikesTaken, destId1, numBikesLeftDest2, destId2,
-    // numBikesLeftDest2
+    // originId, bikesTaken, destId1, numBikesLeftDest1, destId2, numBikesLeftDest2
     private int[][] fleet; // .size .insert
     private int[] isStationVisited; // if not visited, -1
                                     // else, contains the id of the van that visits it
@@ -52,6 +51,74 @@ public class State {
     }
 
     /* ------------------- Operators ------------------- */
+    public void substractVan(int vanId, int count) {
+        int originId = fleet[vanId][0];
+        int bikesTaken = fleet[vanId][1] - count;
+        int dest1Id = fleet[vanId][2];
+        int numBikesLeftDest1 = fleet[vanId][3];
+        int dest2Id = fleet[vanId][4];
+        int numBikesLeftDest2 = fleet[vanId][5];
+
+        // Reset transport cost
+        double previousTransportCost1 = 0;
+        double previousTransportCost2 = 0;
+        if (dest1Id != -1) previousTransportCost1 = getVanTransportCost(originId, dest1Id, bikesTaken);
+        if (dest2Id != -1 && dest1Id != -1) previousTransportCost2 = getVanTransportCost(dest1Id, dest2Id, bikesTaken - numBikesLeftDest1);
+        this.transportCost -= (previousTransportCost1 + previousTransportCost2);
+
+        // Reset supplied demand
+        if (dest1Id != -1) this.suppliedDemand -= numBikesLeftDest1;
+        if (dest2Id != -1) this.suppliedDemand -= numBikesLeftDest2;
+
+        // Reset bikesNeeded
+        if (originId != -1) bikesNeeded[originId] -= bikesTaken;
+        if (dest1Id != -1) bikesNeeded[dest1Id] += numBikesLeftDest1;
+        if (dest2Id != -1) bikesNeeded[dest2Id] += numBikesLeftDest2;
+
+        // Update bikesTaken and fleet[vanId][1]
+        if (originId != -1) bikesTaken = -bikesNeeded[originId] - count;
+
+        // Update van's dest1 and bikesLeft at each dest
+        if (dest1Id != -1) fleet[vanId][3] = numBikesLeftDest1 = Math.max(Math.min(bikesTaken, bikesNeeded[dest1Id]), 0);
+        if (dest2Id != -1) fleet[vanId][5] = numBikesLeftDest2 = Math.max(Math.min(bikesTaken - numBikesLeftDest1, bikesNeeded[dest2Id]), 0);
+        
+        // Update bikesNeeded
+        if (originId != -1) {
+            bikesNeeded[originId] += numBikesLeftDest1;
+            bikesTaken = fleet[vanId][1] = numBikesLeftDest1;
+            if (dest2Id != -1) {
+                bikesNeeded[originId] += numBikesLeftDest2;
+                bikesTaken = fleet[vanId][1] += numBikesLeftDest2;
+            }
+        }
+        if (dest1Id != -1) bikesNeeded[dest1Id] -= numBikesLeftDest1;
+        if (dest2Id != -1) bikesNeeded[dest2Id] -= numBikesLeftDest2;
+
+        if (fleet[vanId][3] == 0) {
+            fleet[vanId][3] = numBikesLeftDest1 = -1; //convenio de no primer destino
+            fleet[vanId][2] = dest1Id = -1;
+        }
+        if (fleet[vanId][5] == 0) {
+            fleet[vanId][5] = numBikesLeftDest2 = -1; //convenio de no segundo destino
+            fleet[vanId][4] = dest2Id = -1;
+        }
+        
+        // Update transport cost
+        double newTransportCost1 = 0;
+        if (dest1Id != -1) newTransportCost1 = getVanTransportCost(originId, dest1Id, bikesTaken);
+        double newTransportCost2 = 0;
+        if (dest2Id != -1) newTransportCost2 = getVanTransportCost(dest1Id, dest2Id, bikesTaken - numBikesLeftDest1);
+        this.transportCost += (newTransportCost1 + newTransportCost2);
+
+        // Update supplied demand
+        if (dest1Id != -1) this.suppliedDemand += numBikesLeftDest1;
+        if (dest2Id != -1) this.suppliedDemand += numBikesLeftDest2;
+
+        // Calculate new benefit
+        this.benefit = (double) suppliedDemand - transportCost;
+        
+    }
+
     public void changeDestination1(int vanId, int newDestId) {
         int originId = fleet[vanId][0];
         int bikesTaken = fleet[vanId][1];
@@ -219,189 +286,210 @@ public class State {
         // System.out.println("---------------------------");
     }
 
-    public void swapOrigin(int fleetId, int newOriginId) {
-        // Condition: newOriginId != dest1Id && newOriginId != dest2Id and newOriginId has excess bikes
-        // !Problem: how to handle the case where origin has no sufficient excess bikes for
-        // both destinations?
-        int originId = fleet[fleetId][0];
-        int bikesTaken = fleet[fleetId][1];
-        int dest1Id = fleet[fleetId][2];
-        int numBikesLeftDest1 = fleet[fleetId][3];
-        int dest2Id = fleet[fleetId][4];
-        int numBikesLeftDest2 = fleet[fleetId][5];
+    // public void swapOrigin(int fleetId, int newOriginId) { 
+    //     // change --> if 
+    //     // Condition: newOriginId != dest1Id && newOriginId != dest2Id and newOriginId has excess bikes
+    //     // !Problem: how to handle the case where origin has no sufficient excess bikes for
+    //     // both destinations?
+    //     int originId = fleet[fleetId][0];
+    //     int bikesTaken = fleet[fleetId][1];
+    //     int dest1Id = fleet[fleetId][2];
+    //     int numBikesLeftDest1 = fleet[fleetId][3];
+    //     int dest2Id = fleet[fleetId][4];
+    //     int numBikesLeftDest2 = fleet[fleetId][5];
 
-        //can't swap if it has no fleet
-        int fleet2Id = isStationVisited[newOriginId];
-        if (fleet2Id == -1) return;
+    //     Boolean newDestNeedsBikes = bikesNeeded[newOriginId] > 0; //it was <, now >. Is the only change in thos function.
 
-        //same origin
-        if (newOriginId == originId) return;
-
+    //     //same origin
+    //     if (newOriginId == originId) return;
+    //     //no excess bikes or it's not an origin
+    //     if (newDestNeedsBikes || newOriginId == -1) return;
+    //     //este caso creo que si no está puede generar muchos bugs
+    //     if (newOriginId == dest1Id || newOriginId == dest2Id) return;
         
-        //fleet2Id data
-        int originId2 = fleet[fleet2Id][0];
-        int bikesTaken2 = fleet[fleet2Id][1];
-        int dest1Id2 = fleet[fleet2Id][2];
-        int numBikesLeftDest12 = fleet[fleet2Id][3];
-        int dest2Id2 = fleet[fleet2Id][4];
-        int numBikesLeftDest22 = fleet[fleet2Id][5];
-
-        // System.out.print("!Applying swapOrigin operator!\n");
-
-        // Reset transport cost of both vans
-        double previousTransportCost1 = 0;
-        double previousTransportCost2 = 0;
-        if (dest1Id != -1) previousTransportCost1 = getVanTransportCost(originId, dest1Id, bikesTaken);
-        if (dest1Id != -1 && dest2Id != -1) previousTransportCost2 = getVanTransportCost(dest1Id, dest2Id, bikesTaken - numBikesLeftDest1);
-        this.transportCost -= (previousTransportCost1 + previousTransportCost2);
-
-        double previousTransportCost12 = 0;
-        double previousTransportCost22 = 0;
-        if (dest1Id2 != -1) previousTransportCost12 = getVanTransportCost(originId2, dest1Id2, bikesTaken2);
-        if (dest1Id2 != -1 && dest2Id2 != -1) previousTransportCost22 = getVanTransportCost(dest1Id2, dest2Id2, bikesTaken2 - numBikesLeftDest12);
-        this.transportCost -= (previousTransportCost12 + previousTransportCost22);
-
-        // Reset supplied demand of both vans
-        if (dest1Id != -1) this.suppliedDemand -= numBikesLeftDest1;
-        if (dest2Id != -1) this.suppliedDemand -= numBikesLeftDest2;
-
-        if (dest1Id2 != -1) this.suppliedDemand -= numBikesLeftDest12;
-        if (dest2Id2 != -1) this.suppliedDemand -= numBikesLeftDest22;
-
-        // Reset bikesNeeded of both vans
-        if (dest1Id != -1) bikesNeeded[dest1Id] += numBikesLeftDest1;
-        if (dest2Id != -1) bikesNeeded[dest2Id] += numBikesLeftDest2;
-
-        if (dest1Id2 != -1) bikesNeeded[dest1Id2] += numBikesLeftDest12;
-        if (dest2Id2 != -1) bikesNeeded[dest2Id2] += numBikesLeftDest22;
-
-        //Reset bikesTaken of both vans
-        bikesNeeded[originId] -= bikesTaken;
-        bikesNeeded[originId2] -= bikesTaken2;
-        bikesTaken = fleet[fleet2Id][1] = -bikesNeeded[originId2]; // it would be this or 0?
-        bikesTaken2 = fleet[fleetId][1] = -bikesNeeded[originId];
-
-        //Update isStationVisited of both vans
-        isStationVisited[originId] = fleet2Id;
-        isStationVisited[originId2] = fleetId;
-        fleet[fleetId][0] = originId2;
-        fleet[fleet2Id][0] = originId;
-
-        // Update fleetId bikesLeft and bikesNeeded at each dest
-        if (dest1Id != -1) {
-            int temp1 =  Math.abs(bikesNeeded[newOriginId]);
-            int temp2 = bikesNeeded[dest1Id];
-            if (temp1 > temp2) { //sobran mas de las que faltan
-                fleet[fleetId][1] = bikesTaken = temp2; //bicis que sale de origen
-                fleet[fleetId][3] = numBikesLeftDest1 = temp2; //bicis que llegan a destino
-                bikesNeeded[newOriginId] += temp2;
-                bikesNeeded[dest1Id] -= temp2;
-            }
-            else { //faltan mas de las que sobran
-                fleet[fleetId][1] = temp1; //bicis que sale de origen
-                fleet[fleetId][3] = numBikesLeftDest1 = temp1; //bicis que llegan a destino
-                bikesNeeded[newOriginId] += temp1;
-                bikesNeeded[dest1Id] -= temp1;
-            }
-        }
-        if (dest2Id != -1) {
-            int temp1 = Math.abs(bikesNeeded[newOriginId]);
-            int temp2 = bikesNeeded[dest2Id];
-            if (temp1 > temp2) { //sobran mas de las que faltan
-                fleet[fleetId][1] += temp2; //bicis que sale de origen
-                bikesTaken += temp2;
-                fleet[fleetId][5] = numBikesLeftDest2 = temp2; //bicis que sale de origen
-                bikesNeeded[newOriginId] += temp2; //ponemos a cero porque ya ha hecho 2 destinos y aun le sobran
-                bikesNeeded[dest2Id] -= temp2;
-            }
-            else {
-                fleet[fleetId][1] += temp1; //bicis que sale de origen
-                bikesTaken += temp1;
-                fleet[fleetId][5] = numBikesLeftDest2 = temp1; //bicis que sale de origen
-                bikesNeeded[newOriginId] += temp1;
-                bikesNeeded[dest2Id] -= temp1;
-            }
-        }
-
-        // Update fleet2Id bikesLeft and bikesNeeded at each dest
-        if (dest1Id2 != -1) {
-            int temp1 =  Math.abs(bikesNeeded[originId]);
-            int temp2 = bikesNeeded[dest1Id2];
-            if (temp1 > temp2) { //sobran mas de las que faltan
-                fleet[fleet2Id][1] = bikesTaken2 = temp2; //bicis que sale de origen
-                fleet[fleet2Id][3] = numBikesLeftDest12 = temp2; //bicis que llegan a destino
-                bikesNeeded[originId] += temp2;
-                bikesNeeded[dest1Id2] -= temp2;
-            }
-            else { //faltan mas de las que sobran
-                fleet[fleet2Id][1] = temp1; //bicis que sale de origen
-                fleet[fleet2Id][3] = numBikesLeftDest12 = temp1; //bicis que llegan a destino
-                bikesNeeded[originId] += temp1;
-                bikesNeeded[dest1Id2] -= temp1;
-            }
-        }
-        if (dest2Id2 != -1) {
-            int temp1 = Math.abs(bikesNeeded[originId]);
-            int temp2 = bikesNeeded[dest2Id2];
-            if (temp1 > temp2) { //sobran mas de las que faltan
-                fleet[fleet2Id][1] += temp2; //bicis que sale de origen
-                bikesTaken2 += temp2;
-                fleet[fleet2Id][5] = numBikesLeftDest22 = temp2; //bicis que sale de origen
-                bikesNeeded[originId] += temp2; //ponemos a cero porque ya ha hecho 2 destinos y aun le sobran
-                bikesNeeded[dest2Id2] -= temp2;
-            }
-            else {
-                fleet[fleet2Id][1] += temp1; //bicis que sale de origen
-                bikesTaken2 += temp1;
-                fleet[fleet2Id][5] = numBikesLeftDest22 = temp1; //bicis que sale de origen
-                bikesNeeded[originId] += temp1;
-                bikesNeeded[dest2Id2] -= temp1;
-            }
-        }
-
-        if (fleet[fleetId][3] == 0) {
-            fleet[fleetId][3] = numBikesLeftDest1 = -1; //convenio de no primer destino
-            fleet[fleetId][2] = dest1Id = -1;
-        }
-        if (fleet[fleetId][5] == 0) {
-            fleet[fleetId][5] = numBikesLeftDest2 = -1; //convenio de no segundo destino
-            fleet[fleetId][4] = dest2Id = -1;
-        }
-        if (fleet[fleet2Id][3] == 0) {
-            fleet[fleet2Id][3] = numBikesLeftDest12 = -1; //convenio de no primer destino
-            fleet[fleet2Id][2] = dest1Id2 = -1;
-        }
-        if (fleet[fleet2Id][5] == 0) {
-            fleet[fleet2Id][5] = numBikesLeftDest22 = -1; //convenio de no segundo destino
-            fleet[fleet2Id][4] = dest2Id2 = -1;
-        }
+    //     //can't swap if it has no fleet
+    //     int fleet2Id = isStationVisited[newOriginId];
+    //     //if (fleet2Id == -1) return;
         
-        // Update transport cost
-        double newTransportCost1 = 0;
-        if (dest1Id != -1) newTransportCost1 = getVanTransportCost(originId2, dest1Id, bikesTaken);
-        double newTransportCost2 = 0;
-        if (dest2Id != -1 && dest1Id != -1) newTransportCost2 = getVanTransportCost(dest1Id, dest2Id, bikesTaken - numBikesLeftDest1);
-        this.transportCost += (newTransportCost1 + newTransportCost2);
+    //     //fleet2Id data
+    //     int originId2 = -1;
+    //     int bikesTaken2 = -1;
+    //     int dest1Id2 = -1;
+    //     int numBikesLeftDest12 = -1;
+    //     int dest2Id2 = -1;
+    //     int numBikesLeftDest22 = -1;
+    //     if (fleet2Id != -1) {
+    //         originId2 = fleet[fleet2Id][0];
+    //         bikesTaken2 = fleet[fleet2Id][1];
+    //         dest1Id2 = fleet[fleet2Id][2];
+    //         numBikesLeftDest12 = fleet[fleet2Id][3];
+    //         dest2Id2 = fleet[fleet2Id][4];
+    //         numBikesLeftDest22 = fleet[fleet2Id][5];
+    //     }
 
-        double newTransportCost12 = 0;
-        if (dest1Id2 != -1) newTransportCost12 = getVanTransportCost(originId, dest1Id2, bikesTaken2);
-        double newTransportCost22 = 0;
-        if (dest2Id2 != -1 && dest1Id2 != -1) newTransportCost22 = getVanTransportCost(dest1Id2, dest2Id2, bikesTaken2 - numBikesLeftDest12);
-        this.transportCost += (newTransportCost12 + newTransportCost22);
 
-        // Update supplied demand
-        if (dest1Id != -1) this.suppliedDemand += numBikesLeftDest1;
-        if (dest2Id != -1) this.suppliedDemand += numBikesLeftDest2;
+    //     // System.out.print("!Applying swapOrigin operator!\n");
+
+    //     // Reset transport cost of both vans
+    //     double previousTransportCost1 = 0;
+    //     double previousTransportCost2 = 0;
+    //     if (dest1Id != -1) previousTransportCost1 = getVanTransportCost(originId, dest1Id, bikesTaken);
+    //     if (dest1Id != -1 && dest2Id != -1) previousTransportCost2 = getVanTransportCost(dest1Id, dest2Id, bikesTaken - numBikesLeftDest1);
+    //     this.transportCost -= (previousTransportCost1 + previousTransportCost2);
+
+    //     double previousTransportCost12 = 0;
+    //     double previousTransportCost22 = 0;
+    //     if (dest1Id2 != -1) previousTransportCost12 = getVanTransportCost(originId2, dest1Id2, bikesTaken2);
+    //     if (dest1Id2 != -1 && dest2Id2 != -1) previousTransportCost22 = getVanTransportCost(dest1Id2, dest2Id2, bikesTaken2 - numBikesLeftDest12);
+    //     this.transportCost -= (previousTransportCost12 + previousTransportCost22);
+
+    //     // Reset supplied demand of both vans
+    //     if (dest1Id != -1) this.suppliedDemand -= numBikesLeftDest1;
+    //     if (dest2Id != -1) this.suppliedDemand -= numBikesLeftDest2;
+
+    //     if (dest1Id2 != -1) this.suppliedDemand -= numBikesLeftDest12;
+    //     if (dest2Id2 != -1) this.suppliedDemand -= numBikesLeftDest22;
+
+    //     // Reset bikesNeeded of both vans
+    //     if (dest1Id != -1) bikesNeeded[dest1Id] += numBikesLeftDest1;
+    //     if (dest2Id != -1) bikesNeeded[dest2Id] += numBikesLeftDest2;
+
+    //     if (dest1Id2 != -1) bikesNeeded[dest1Id2] += numBikesLeftDest12;
+    //     if (dest2Id2 != -1) bikesNeeded[dest2Id2] += numBikesLeftDest22;
+
+    //     //Reset bikesTaken of both vans
+    //     bikesNeeded[originId] -= bikesTaken;
+    //     if (fleet2Id != -1) bikesNeeded[originId2] -= bikesTaken2;
+
+    //     //Update bikesTaken of both vans
+    //     bikesTaken = fleet[fleetId][1] = -bikesNeeded[newOriginId];
+
+    //     if (fleet2Id != -1) bikesTaken2 = fleet[fleet2Id][1] = -bikesNeeded[originId];
+
+    //     //Update isStationVisited of both vans
+    //     isStationVisited[originId] = fleet2Id;
+    //     isStationVisited[originId2] = fleetId;
+
+    //     if (fleet2Id != -1) fleet[fleet2Id][0] = originId2 = originId;
+    //     fleet[fleetId][0] = originId = newOriginId;
+
+    //     // Update fleetId bikesLeft and bikesNeeded at each dest
+    //     if (dest1Id != -1) {
+    //         int temp1 =  Math.abs(bikesNeeded[newOriginId]);
+    //         int temp2 = bikesNeeded[dest1Id];
+    //         if (temp1 > temp2) { //sobran mas de las que faltan
+    //             fleet[fleetId][1] = bikesTaken = temp2; //bicis que sale de origen
+    //             fleet[fleetId][3] = numBikesLeftDest1 = temp2; //bicis que llegan a destino
+    //             bikesNeeded[newOriginId] += temp2;
+    //             bikesNeeded[dest1Id] -= temp2;
+    //         }
+    //         else { //faltan mas de las que sobran
+    //             fleet[fleetId][1] = temp1; //bicis que sale de origen
+    //             fleet[fleetId][3] = numBikesLeftDest1 = temp1; //bicis que llegan a destino
+    //             bikesNeeded[newOriginId] += temp1;
+    //             bikesNeeded[dest1Id] -= temp1;
+    //         }
+    //     }
+    //     if (dest2Id != -1) {
+    //         int temp1 = Math.abs(bikesNeeded[newOriginId]);
+    //         int temp2 = bikesNeeded[dest2Id];
+    //         if (temp1 > temp2) { //sobran mas de las que faltan
+    //             fleet[fleetId][1] += temp2; //bicis que sale de origen
+    //             bikesTaken += temp2;
+    //             fleet[fleetId][5] = numBikesLeftDest2 = temp2; //bicis que sale de origen
+    //             bikesNeeded[newOriginId] += temp2; //ponemos a cero porque ya ha hecho 2 destinos y aun le sobran
+    //             bikesNeeded[dest2Id] -= temp2;
+    //         }
+    //         else {
+    //             fleet[fleetId][1] += temp1; //bicis que sale de origen
+    //             bikesTaken += temp1;
+    //             fleet[fleetId][5] = numBikesLeftDest2 = temp1; //bicis que sale de origen
+    //             bikesNeeded[newOriginId] += temp1;
+    //             bikesNeeded[dest2Id] -= temp1;
+    //         }
+    //     }
+
+    //     // Update fleet2Id bikesLeft and bikesNeeded at each dest
+    //     if (dest1Id2 != -1) {
+    //         int temp1 =  Math.abs(bikesNeeded[originId2]);
+    //         int temp2 = bikesNeeded[dest1Id2];
+    //         if (temp1 > temp2) { //sobran mas de las que faltan
+    //             fleet[fleet2Id][1] = bikesTaken2 = temp2; //bicis que sale de origen
+    //             fleet[fleet2Id][3] = numBikesLeftDest12 = temp2; //bicis que llegan a destino
+    //             bikesNeeded[originId2] += temp2;
+    //             bikesNeeded[dest1Id2] -= temp2;
+    //         }
+    //         else { //faltan mas de las que sobran
+    //             fleet[fleet2Id][1] = temp1; //bicis que sale de origen
+    //             fleet[fleet2Id][3] = numBikesLeftDest12 = temp1; //bicis que llegan a destino
+    //             bikesNeeded[originId2] += temp1;
+    //             bikesNeeded[dest1Id2] -= temp1;
+    //         }
+    //     }
+    //     if (dest2Id2 != -1) {
+    //         int temp1 = Math.abs(bikesNeeded[originId2]);
+    //         int temp2 = bikesNeeded[dest2Id2];
+    //         if (temp1 > temp2) { //sobran mas de las que faltan
+    //             fleet[fleet2Id][1] += temp2; //bicis que sale de origen
+    //             bikesTaken2 += temp2;
+    //             fleet[fleet2Id][5] = numBikesLeftDest22 = temp2; //bicis que sale de origen
+    //             bikesNeeded[originId2] += temp2; //ponemos a cero porque ya ha hecho 2 destinos y aun le sobran
+    //             bikesNeeded[dest2Id2] -= temp2;
+    //         }
+    //         else {
+    //             fleet[fleet2Id][1] += temp1; //bicis que sale de origen
+    //             bikesTaken2 += temp1;
+    //             fleet[fleet2Id][5] = numBikesLeftDest22 = temp1; //bicis que sale de origen
+    //             bikesNeeded[originId2] += temp1;
+    //             bikesNeeded[dest2Id2] -= temp1;
+    //         }
+    //     }
+
+    //     if (fleet[fleetId][3] == 0) {
+    //         fleet[fleetId][3] = numBikesLeftDest1 = -1; //convenio de no primer destino
+    //         fleet[fleetId][2] = dest1Id = -1;
+    //     }
+    //     if (fleet[fleetId][5] == 0) {
+    //         fleet[fleetId][5] = numBikesLeftDest2 = -1; //convenio de no segundo destino
+    //         fleet[fleetId][4] = dest2Id = -1;
+    //     }
+    //     if (fleet2Id != -1) {
+    //         if (fleet[fleet2Id][3] == 0) {
+    //             fleet[fleet2Id][3] = numBikesLeftDest12 = -1; //convenio de no primer destino
+    //             fleet[fleet2Id][2] = dest1Id2 = -1;
+    //         }
+    //         if (fleet[fleet2Id][5] == 0) {
+    //             fleet[fleet2Id][5] = numBikesLeftDest22 = -1; //convenio de no segundo destino
+    //             fleet[fleet2Id][4] = dest2Id2 = -1;
+    //         }
+    //     }
         
-        if (dest1Id2 != -1) this.suppliedDemand += numBikesLeftDest12;
-        if (dest2Id2 != -1) this.suppliedDemand += numBikesLeftDest22;
+    //     // Update transport cost
+    //     double newTransportCost1 = 0;
+    //     if (dest1Id != -1) newTransportCost1 = getVanTransportCost(originId2, dest1Id, bikesTaken);
+    //     double newTransportCost2 = 0;
+    //     if (dest2Id != -1 && dest1Id != -1) newTransportCost2 = getVanTransportCost(dest1Id, dest2Id, bikesTaken - numBikesLeftDest1);
+    //     this.transportCost += (newTransportCost1 + newTransportCost2);
 
-        // Calculate new benefit
-        this.benefit = (double) suppliedDemand - transportCost;
+    //     double newTransportCost12 = 0;
+    //     if (dest1Id2 != -1) newTransportCost12 = getVanTransportCost(originId, dest1Id2, bikesTaken2);
+    //     double newTransportCost22 = 0;
+    //     if (dest2Id2 != -1 && dest1Id2 != -1) newTransportCost22 = getVanTransportCost(dest1Id2, dest2Id2, bikesTaken2 - numBikesLeftDest12);
+    //     this.transportCost += (newTransportCost12 + newTransportCost22);
 
-        // System.out.print("!Operator swapOrigin applied!\n");
-        // printState();
-    }
+    //     // Update supplied demand
+    //     if (dest1Id != -1) this.suppliedDemand += numBikesLeftDest1;
+    //     if (dest2Id != -1) this.suppliedDemand += numBikesLeftDest2;
+        
+    //     if (dest1Id2 != -1) this.suppliedDemand += numBikesLeftDest12;
+    //     if (dest2Id2 != -1) this.suppliedDemand += numBikesLeftDest22;
+
+    //     // Calculate new benefit
+    //     this.benefit = (double) suppliedDemand - transportCost;
+
+    //     // System.out.print("!Operator swapOrigin applied!\n");
+    //     // printState();
+    // }
 
     public void changeOrigin(int fleetId, int newOriginId) {
         // Condition: newOriginId != dest1Id && newOriginId != dest2Id and newOriginId has excess bikes
@@ -689,16 +777,58 @@ public class State {
             increasingBikesNeededStationId[i] = increasingBikesNeededStationId[minIndex];
             increasingBikesNeededStationId[minIndex] = temp;
         }
-        int originId = 0;
-        for (int vanId = 0; vanId < F; vanId++) {
-            fleet[vanId][0] = originId;
-            fleet[vanId][1] = Math.max(-bikesNeeded[originId], 0);
-            ++originId;
+
+        //Assignar furgonetas a las estaciones que les sobran más bicis
+        //La furgoneta coje todas las que sobran
+        for (int i = 0; i < F; i++) {
+            int originId = increasingBikesNeededStationId[i];
+            fleet[i][0] = originId;
+            fleet[i][1] = Math.max(-bikesNeeded[originId], 0); // en el caso de que coje 0 es que no hay mas de F estaciones con bicis sobrantes
+            bikesNeeded[originId] = 0;
         }
-        for (int dest1Id = E - 1; dest1Id >= 0; --dest1Id) {
-            // Math.min()
-            // fleet[vanId][3]
+
+        for (int vanId = 0; vanId < F; ++vanId) {
+            for (int j = E - 1; j >= 0 && fleet[vanId][2] == -1; --j) {
+                int dest1Id = increasingBikesNeededStationId[j];
+                if (bikesNeeded[dest1Id] <= 0) continue;
+
+                fleet[vanId][2] = dest1Id;
+                fleet[vanId][3] = Math.min(bikesNeeded[dest1Id], fleet[vanId][1]);
+                bikesNeeded[dest1Id] -= fleet[vanId][3];
+                this.suppliedDemand += fleet[vanId][3];
+                this.transportCost += getVanTransportCost(fleet[vanId][0], dest1Id, fleet[vanId][1]);
+            }
         }
+
+        //le tienen que sobrar bicis a la van
+        //no puede ir a 
+        for (int vanId = 0; vanId < F; ++vanId) {
+            if (fleet[vanId][1] - fleet[vanId][3] > 0) {
+                for (int j = E - 1; j >= 0 && fleet[vanId][4] == -1; --j) {
+                    int dest2Id = increasingBikesNeededStationId[j];
+                    if (bikesNeeded[dest2Id] > 0) {
+                        fleet[vanId][4] = dest2Id;
+                        fleet[vanId][5] = Math.min(bikesNeeded[dest2Id], fleet[vanId][1] - fleet[vanId][3]);
+                        bikesNeeded[dest2Id] -= fleet[vanId][5];
+                        this.suppliedDemand += fleet[vanId][5];
+                        this.transportCost += getVanTransportCost(fleet[vanId][2], dest2Id, fleet[vanId][1] - fleet[vanId][3]);
+                    }
+                }
+            }
+        }
+
+        this.benefit = this.suppliedDemand - this.transportCost;
+        
+        // int originId = 0;
+        // for (int vanId = 0; vanId < F; vanId++) {
+        //     fleet[vanId][0] = originId;
+        //     fleet[vanId][1] = Math.max(-bikesNeeded[originId], 0);
+        //     ++originId;
+        // }
+        // for (int dest1Id = E - 1; dest1Id >= 0; --dest1Id) {
+        //     // Math.min()
+        //     // fleet[vanId][3]
+        // }
     }
 
     public void initialize_medium() {
@@ -823,7 +953,7 @@ public class State {
         int cost_km = (num_bicis+9)/10;
         int distance = getEuclideanDistance(stations.get(i).getCoordX(), stations.get(i).getCoordY(), stations.get(j).getCoordX(), stations.get(j).getCoordY());
         distance = distance/1000;
-        return cost_km*distance*0;
+        return cost_km*distance;
     }
 
     private int getEuclideanDistance(int originX, int originY, int destX, int destY) {
@@ -836,7 +966,7 @@ public class State {
         int distance = getEuclideanDistance(origin.getCoordX(), origin.getCoordY(), dest.getCoordX(), dest.getCoordY());
         int cost_km = (bikesTaken+9)/10;
         distance /= 1000;
-        return cost_km*distance*0;
+        return cost_km*distance;
     }
 
     private void printVan(int vanId) {
