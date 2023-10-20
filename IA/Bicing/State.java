@@ -66,7 +66,12 @@ public class State {
         // second destination
         if (newDestId == -1 && dest2Id != -1) return;
 
-        // System.out.print("!Applying changeDest1 operator!\n");
+        // DEBUGGING
+        // System.out.println("---- BEFORE changeDest1: " + vanId + " " + newDestId + " -----");
+        // printBikesNeeded();
+        // printVan(vanId);
+        // printState();
+        // System.out.println();
 
         // Reset transport cost
         double previousTransportCost1 = 0;
@@ -127,9 +132,12 @@ public class State {
         // Calculate new benefit
         this.benefit = (double) suppliedDemand - transportCost;
 
-        // System.out.print("!Operator changeDest1 applied!\n");
-
+        // DEBUGGING
+        // System.out.println("--------- NEW ---------");
+        // printBikesNeeded();
+        // printVan(vanId);
         // printState();
+        // System.out.println("---------------------------");
     }
 
     public void changeDestination2(int vanId, int newDestId) {
@@ -141,21 +149,16 @@ public class State {
         int numBikesLeftDest2 = fleet[vanId][5];
         Boolean newDestNeedsBikes = bikesNeeded[newDestId] > 0;
 
-        // System.out.print("!Applying changeDest2 operator!\n");
-        // System.out.print("----Applying operator changeDestination: " + vanId + " " + newDestId + "----\n");
-        // System.out.print("Operator not applied\n");
-        // printVan(vanId);
-        // printState();
-
-        /*
-            dest1: no  / dest2: yes ----> no se puede hacer DONE
-            dest1: yes / dest2: no -----> meto dest2
-            dest1: yes / dest2: yes ----> cambiarlo 
-            dest1: yes / dest2: yes ---> eliminar dest2
-         */
         if (newDestId == originId || !newDestNeedsBikes) return;
         if (newDestId == dest1Id || newDestId == dest2Id || dest1Id == -1) return;
         
+        // DEBUGGING
+        // System.out.println("---- BEFORE changeDest2: " + vanId + " " + newDestId + " -----");
+        // printBikesNeeded();
+        // printVan(vanId);
+        // printState();
+        // System.out.println();
+
         if (dest2Id != -1) {
             // Reset transport cost
             double previousTransportCost2 = getVanTransportCost(dest1Id, dest2Id, bikesTaken - numBikesLeftDest1);
@@ -208,9 +211,12 @@ public class State {
             this.benefit = (double) suppliedDemand - transportCost;
         }
 
-        // Print fleet
-        // System.out.print("changeDest2 applied!\n");
+        // DEBUGGING
+        // System.out.println("--------- NEW ---------");
+        // printBikesNeeded();
+        // printVan(vanId);
         // printState();
+        // System.out.println("---------------------------");
     }
 
     public void swapOrigin(int fleetId, int newOriginId) {
@@ -795,7 +801,7 @@ public class State {
                 }
             }
         }
-        printBikesNeeded();
+        // printBikesNeeded();
         // System.out.println("i: " + i + " j: " + j + " size_fleet: " + size_fleet);
 
         //set transportCost
@@ -834,18 +840,28 @@ public class State {
     }
 
     private void printVan(int vanId) {
+        System.out.print("Van " + vanId + ": ");
         for (int j = 0; j < 6; ++j) {
-            System.out.print(fleet[vanId][j] + " ");
+            System.out.print(fleet[vanId][j] + "  ");
         }
         System.out.println();
     }
 
-    private void printBikesNeeded() {
-        for (int i = 0; i < E; ++i) {
-            System.out.print(bikesNeeded[i] + " ");
+    public void printFleet() {
+        for (int i = 0; i < F; ++i) {
+            printVan(i);
         }
         System.out.println();
     }
+
+    public void printBikesNeeded() {
+        System.out.println("Bikes needed: ");
+        for (int i = 0; i < E; ++i) {
+            System.out.print(i + ": " + bikesNeeded[i] + "  ");
+        }
+        System.out.println();
+    }
+
     public void printState() {
         System.out.println("benefit: " + benefit + " transportCost: " + transportCost + " suppliedDemand: " + suppliedDemand + "\n");
     }
@@ -860,5 +876,13 @@ public class State {
             fleetState += "\n";
         }
         return fleetState;
+    }
+
+    public void printStationsInfo() {
+        System.out.println("Stations info: ");
+        for (int i = 0; i < E; ++i) {
+            Estacion s = stations.get(i);
+            System.out.println(i + ": D:" + s.getDemanda() + " N:" + s.getNumBicicletasNext() + " BNU:" + s.getNumBicicletasNoUsadas());
+        }
     }
 }
