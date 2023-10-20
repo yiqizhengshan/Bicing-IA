@@ -38,46 +38,43 @@ public class Main {
         // Using Scanner for Getting Input from User
 
         Scanner in = new Scanner(System.in);
+        
+        int initializationMode, mode, E, B, seed, F;
 
-        System.out.println("Escribe 1 (EASY) o 2 (MEDIUM)");
-        int difficulty = in.nextInt();
-        System.out.println("Escribe 1 (EQUILIBRIUM) o 2 (RUSH_HOUR)");
-        int mode = in.nextInt();
-        System.out.println("Dame el número de estaciones:");
-        int E = in.nextInt();
-        System.out.println("Dame el número de bicicletas:");
-        int B = in.nextInt();
-        System.out.println("Dame la semilla:");
-        int seed = in.nextInt();
-
-        Estaciones Est;
-        if (mode == 1) {
-            Est = new Estaciones(E, B, Estaciones.EQUILIBRIUM, seed);
-        } else {
-            Est = new Estaciones(E, B, Estaciones.RUSH_HOUR, seed);
+        System.out.println("Modo del input: 0 automático, 1 manual");
+        int modoInput = in.nextInt();
+        if (modoInput == 0) {
+            initializationMode = 1;
+            mode = 1;
+            E = 25;
+            B = 1250;
+            seed = 1234;
+            F = 5;
+        }
+        else {
+            System.out.println("Modo de inicialización: 1 (EASY) o 2 (MEDIUM)");
+            initializationMode = in.nextInt();
+            System.out.println("Modo: 1 (EQUILIBRIUM) o 2 (RUSH_HOUR)");
+            mode = in.nextInt();
+            System.out.println("Dame el número de estaciones:");
+            E = in.nextInt();
+            System.out.println("Dame el número de bicicletas:");
+            B = in.nextInt();
+            System.out.println("Dame la semilla:");
+            seed = in.nextInt();
+            System.out.println("Dame el número de furgonetas:");
+            F = in.nextInt();
         }
 
-        System.out.println("Dame el número de furgonetas:");
-        int F = in.nextInt();
+        Estaciones stations;
+        if (mode == 1) stations = new Estaciones(E, B, Estaciones.EQUILIBRIUM, seed);
+        else stations = new Estaciones(E, B, Estaciones.RUSH_HOUR, seed);
 
-        State initialState = new State(F, Est);
+        State initialState = new State(F, stations);
 
-        //print bikesNeeded
-        for (int i = 0; i < initialState.getBikesNeeded().length; ++i) {
-            System.out.println("bikesNeeded[" + i + "]: " + initialState.getBikesNeeded()[i]);
-        }
+        if (initializationMode == 1) initialState.initialize_easy();
+        else initialState.initialize_medium();
 
-        if (difficulty == 1) {
-            initialState.initialize_easy();
-        } else {
-            initialState.initialize_medium();
-        }
-
-        //print bikesNeeded after initialize
-        String FleetState = initialState.getFleetState();
-        System.out.println(FleetState);
-
-        // close the Scanner object
         in.close();
 
         // Create the Problem object
@@ -101,6 +98,5 @@ public class Main {
 
         // You can access also to the goal state using the
         // method getGoalState of class Search
-
     }
 }
