@@ -5,6 +5,6 @@
     ]
     ,
     "java.configuration.vmArgs": [
-        "-Xmx4G"
+        "-Xmx8G"
     ]
 }

@@ -46,7 +46,7 @@ public class Main {
         int modoInput = in.nextInt();
         if (modoInput == 0) {
             initializationMode = 3;
-            mode = 1;
+            mode = 2;
             E = 25;
             B = 1250;
             seed = 1234;
