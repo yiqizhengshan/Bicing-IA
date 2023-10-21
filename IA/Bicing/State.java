@@ -690,7 +690,7 @@ public class State {
         int i = 0;
         int j = 0;
 
-        while (i < E && j < E && size_fleet > 0) {
+        while (i < E && j < E && size_fleet >= 0) {
             i = 0;
             j = 0;
 

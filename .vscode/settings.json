@@ -3,4 +3,8 @@
         "lib/**/*.jar",
         "/home/yiqi/Escritorio/Bicing/*.jar"
     ]
+    ,
+    "java.configuration.vmArgs": [
+        "-Xmx4G"
+    ]
 }

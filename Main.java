@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.Timer;
 
 public class Main {
     private static void printInstrumentation(Properties properties) {
@@ -44,15 +45,15 @@ public class Main {
         System.out.println("Modo del input: 0 automático, 1 manual");
         int modoInput = in.nextInt();
         if (modoInput == 0) {
-            initializationMode = 1;
+            initializationMode = 3;
             mode = 1;
             E = 25;
             B = 1250;
             seed = 1234;
-            F = 5;
+            F = 20;
         }
         else {
-            System.out.println("Modo de inicialización: 1 (EASY) o 2 (MEDIUM)");
+            System.out.println("Modo de inicialización: 1 (EASY) o 2 (MEDIUM) o 3 (HARD)");
             initializationMode = in.nextInt();
             System.out.println("Modo: 1 (EQUILIBRIUM) o 2 (RUSH_HOUR)");
             mode = in.nextInt();
@@ -71,9 +72,14 @@ public class Main {
         else stations = new Estaciones(E, B, Estaciones.RUSH_HOUR, seed);
 
         State initialState = new State(F, stations);
+        
+        //counter initialization
+        long tiempoInicio = System.currentTimeMillis();
+
 
         if (initializationMode == 1) initialState.initialize_easy();
-        else initialState.initialize_medium();
+        else if (initializationMode == 2) initialState.initialize_medium();
+        else initialState.initialize_hard();
 
         in.close();
 
@@ -86,16 +92,30 @@ public class Main {
         // Instantiate the search algorithm
         // AStarSearch(new GraphSearch()) or IterativeDeepeningAStarSearch()
         Search alg = new HillClimbingSearch();
-
+        // int iterations = 10000;
+        // int step = 
+        // int k = 125;
+        // float lambda = 0.0001;
+        // Search algSA = new SimulatedAnnealingSearch(iterations, k, lambda);
 
         // Instantiate the SearchAgent object
         SearchAgent agent = new SearchAgent(p, alg);
+
+        // Print initial state things
+        String results = new String("benefit: " + initialState.getBenefit() + " suppliedDemand: " + initialState.getSuppliedDemand() + " transportCost: " + initialState.getTransportCost() + " totalLength: " + initialState.getTotalLength());
+        String fleetState = initialState.getFleetState();
+            System.out.println(results + "\n" + fleetState);
+        //System.out.println("suppliedDemand: " + initialState.getSuppliedDemand());
 
         // We print the results of the search
         System.out.println();
         printActions(agent.getActions());
         printInstrumentation(agent.getInstrumentation());
 
+        long tiempoFin = System.currentTimeMillis();
+        long totalTiempo = tiempoFin - tiempoInicio;
+        System.out.println("Tiempo de ejecución: " + totalTiempo + " milisegundos");
+        System.out.println("----------------------------------");
         // You can access also to the goal state using the
         // method getGoalState of class Search
     }
