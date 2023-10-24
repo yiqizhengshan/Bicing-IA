@@ -19,22 +19,23 @@ public class BicingSuccesorFunctionSA implements SuccessorFunction {
         int vanId = myRandom.nextInt(F);
         int newOriginId = myRandom.nextInt(E);
         int newDestId = myRandom.nextInt(E);
-        int operatorId = myRandom.nextInt(3);
+        int operatorId = myRandom.nextInt(2);
 
         State newState = new State(currentState);
         String operator, results, fleetState;
         // Devolver un sucesor random
         if (operatorId == 0) {
             // Change Destination 1
-            
+            //if (newState.isChangeDestination1ConditionOkay(vanId, newDestId))
             newState.changeDestination1(vanId, newDestId);
 
             operator = new String("changeDestination1 " + vanId + " " + newDestId);
             results = new String("benefit: " + newState.getBenefit() + " suppliedDemand: " + newState.getSuppliedDemand() + " transportCost: " + newState.getTransportCost() + " totalLength: " + newState.getTotalLength());
             fleetState = newState.getFleetState();
-
-        } else if (operatorId == 1) {
+        }
+        else if (operatorId == 1) {
             // Change Destination 2
+            // while (!newState.isChangeDestination2ConditionOkay(vanId, newDestId)) newDestId = myRandom.nextInt(E);
             newState.changeDestination2(vanId, newDestId);
 
             operator = new String("changeDestination2 " + vanId + " " + newDestId);
@@ -43,6 +44,7 @@ public class BicingSuccesorFunctionSA implements SuccessorFunction {
         }
         else {
             // Change Origin
+            // while (!newState.isChangeOriginConditionOkay(vanId, newOriginId)) newOriginId = myRandom.nextInt(E);
             newState.changeOrigin(vanId, newOriginId);
 
             operator = new String("changeOrigin " + vanId + " " + newOriginId);

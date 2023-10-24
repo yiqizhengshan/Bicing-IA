@@ -27,21 +27,22 @@ public class BicingSuccesorFunction implements SuccessorFunction {
             //     retval.add(new Successor(new String(operator + "\n" + results + "\n" + fleetState), copy));
             // }
 
-            // // changeDestination2
-            // for (int destId2 = 0; destId2 < E; ++destId2) {
-            //     State copy = new State(board);
-            //     copy.changeDestination2(vanId, destId2);
+            // changeDestination2
+            for (int destId2 = 0; destId2 < E; ++destId2) {
+                State copy = new State(board);
+                copy.changeDestination2(vanId, destId2);
 
-            //     String operator = new String("changeDestination2 " + vanId + " " + destId2);
-            //     String results = new String("benefit: " + copy.getBenefit() + " suppliedDemand: " + copy.getSuppliedDemand() + " transportCost: " + copy.getTransportCost() + " totalLength: " + copy.getTotalLength());
-            //     //String fleetState = copy.getFleetState();
-            //     String fleetState = "";
-            //     retval.add(new Successor(new String(operator + "\n" + results + "\n" + fleetState), copy));
-            // }
+                String operator = new String("changeDestination2 " + vanId + " " + destId2);
+                String results = new String("benefit: " + copy.getBenefit() + " suppliedDemand: " + copy.getSuppliedDemand() + " transportCost: " + copy.getTransportCost() + " totalLength: " + copy.getTotalLength());
+                //String fleetState = copy.getFleetState();
+                String fleetState = "";
+                retval.add(new Successor(new String(operator + "\n" + results + "\n" + fleetState), copy));
+            }
 
             // changeDestination1
             for (int destId1 = 0; destId1 < E; ++destId1) {
                 State copy = new State(board);
+                if (!copy.isChangeDestination1ConditionOkay(vanId, destId1)) continue;
                 copy.changeDestination1(vanId, destId1);
 
                 String operator = new String("changeDestination1 " + vanId + " " + destId1);
@@ -54,6 +55,7 @@ public class BicingSuccesorFunction implements SuccessorFunction {
             // changeOrigin
             for (int originId = 0; originId < E; ++originId) {
                 State copy = new State(board);
+                if (!copy.isChangeOriginConditionOkay(vanId, originId)) continue;
                 copy.changeOrigin(vanId, originId);
 
                 String operator = new String("changeOrigin " + vanId + " " + originId);

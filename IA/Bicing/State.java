@@ -206,8 +206,21 @@ public class State {
         if (dest2Id != -1) this.suppliedDemand += numBikesLeftDest2;
 
         // Calculate new benefit
-        this.benefit = (double) suppliedDemand - transportCost;
 
+        this.transportCost = 0.0;
+        for (int vanid = 0; vanid < F; ++vanid) {
+            int originid = fleet[vanid][0];
+            int bikestaken = fleet[vanid][1];
+            int dest1id = fleet[vanid][2];
+            int numbikesLeftDest1 = fleet[vanid][3];
+            int dest2id = fleet[vanid][4];
+            int numbikesLeftDest2 = fleet[vanid][5];
+
+            if (dest1id != -1)  this.transportCost += getVanTransportCost(originid, dest1id, bikestaken);
+            if (dest1id != -1 && dest2id != -1) this.transportCost += getVanTransportCost(dest1id, dest2id, bikestaken - numbikesLeftDest1);
+        }
+
+        this.benefit = (double) suppliedDemand - transportCost;
         // DEBUGGING
         // System.out.println("--------- NEW ---------");
         // printBikesNeeded();
@@ -238,6 +251,8 @@ public class State {
         if (newDestId == originId || !newDestNeedsBikes) return;
         if (newDestId == dest1Id || newDestId == dest2Id || dest1Id == -1) return;
         
+        //if (newDestId == -1 && dest2Id != -1) return; (del change1)
+
         // DEBUGGING
         // System.out.println("---- BEFORE changeDest2: " + vanId + " " + newDestId + " -----");
         // printBikesNeeded();
@@ -294,9 +309,23 @@ public class State {
             this.suppliedDemand += numBikesLeftDest2;
             // eso es
             // Calculate new benefit
-            this.benefit = (double) suppliedDemand - transportCost;
         }
 
+        this.transportCost = 0.0;
+        for (int vanid = 0; vanid < F; ++vanid) {
+            int originid = fleet[vanid][0];
+            int bikestaken = fleet[vanid][1];
+            int dest1id = fleet[vanid][2];
+            int numbikesLeftDest1 = fleet[vanid][3];
+            int dest2id = fleet[vanid][4];
+            int numbikesLeftDest2 = fleet[vanid][5];
+
+            if (dest1id != -1)  this.transportCost += getVanTransportCost(originid, dest1id, bikestaken);
+            if (dest1id != -1 && dest2id != -1) this.transportCost += getVanTransportCost(dest1id, dest2id, bikestaken - numbikesLeftDest1);
+        }
+
+            
+            this.benefit = (double) suppliedDemand - transportCost;
         // DEBUGGING
         // System.out.println("--------- NEW ---------");
         // printBikesNeeded();
@@ -415,11 +444,25 @@ public class State {
         if (dest1Id != -1) this.suppliedDemand += numBikesLeftDest1;
         if (dest2Id != -1) this.suppliedDemand += numBikesLeftDest2;
 
+        this.transportCost = 0.0;
+        for (int vanid = 0; vanid < F; ++vanid) {
+            int originid = fleet[vanid][0];
+            int bikestaken = fleet[vanid][1];
+            int dest1id = fleet[vanid][2];
+            int numbikesLeftDest1 = fleet[vanid][3];
+            int dest2id = fleet[vanid][4];
+            int numbikesLeftDest2 = fleet[vanid][5];
+
+            if (dest1id != -1)  this.transportCost += getVanTransportCost(originid, dest1id, bikestaken);
+            if (dest1id != -1 && dest2id != -1) this.transportCost += getVanTransportCost(dest1id, dest2id, bikestaken - numbikesLeftDest1);
+        }
+
         // Calculate new benefit
         this.benefit = (double) suppliedDemand - transportCost;
 
         //System.out.print("!Operator swapOrigin applied!\n");
         // printState();
+
     }
 
     /* ------------------- Heuristic function ------------------- */
@@ -804,10 +847,10 @@ public class State {
     /* Auxiliary functions */
 
     public double calcula_cost(int i, int j, int num_bicis) {
-        int cost_km = (num_bicis+9)/10;
-        int distance = getEuclideanDistance(stations.get(i).getCoordX(), stations.get(i).getCoordY(), stations.get(j).getCoordX(), stations.get(j).getCoordY());
-        distance = distance/1000;
-        return cost_km*distance*0;
+        double cost_km = ((double)num_bicis+9.0)/10.0;
+        double distance = getEuclideanDistance(stations.get(i).getCoordX(), stations.get(i).getCoordY(), stations.get(j).getCoordX(), stations.get(j).getCoordY());
+        distance = distance/1000.0;
+        return cost_km*distance;
     }
 
     private int getEuclideanDistance(int originX, int originY, int destX, int destY) {
@@ -817,10 +860,10 @@ public class State {
     private double getVanTransportCost(int originId, int destId, int bikesTaken) {
         Estacion origin = stations.get(originId);
         Estacion dest = stations.get(destId);
-        int distance = getEuclideanDistance(origin.getCoordX(), origin.getCoordY(), dest.getCoordX(), dest.getCoordY());
-        int cost_km = (bikesTaken+9)/10;
-        distance /= 1000;
-        return cost_km*distance*0;
+        double distance = getEuclideanDistance(origin.getCoordX(), origin.getCoordY(), dest.getCoordX(), dest.getCoordY());
+        double cost_km = ((double)bikesTaken+9.0)/10.0;
+        distance /= 1000.0;
+        return cost_km*distance;
     }
 
     public double getTotalLength() {
@@ -884,5 +927,38 @@ public class State {
             Estacion s = stations.get(i);
             System.out.println(i + ": D:" + s.getDemanda() + " N:" + s.getNumBicicletasNext() + " BNU:" + s.getNumBicicletasNoUsadas());
         }
+    }
+
+    public void printTotalTransportCost() {
+        double cost = 0.0;
+        for (int vanId = 0; vanId < F; ++vanId) {
+            int originId = fleet[vanId][0];
+            int bikesTaken = fleet[vanId][1];
+            int dest1Id = fleet[vanId][2];
+            int numBikesLeftDest1 = fleet[vanId][3];
+            int dest2Id = fleet[vanId][4];
+            int numBikesLeftDest2 = fleet[vanId][5];
+
+            if (dest1Id != -1) cost += getVanTransportCost(originId, dest1Id, bikesTaken);
+            if (dest1Id != -1 && dest2Id != -1) cost += getVanTransportCost(dest1Id, dest2Id, bikesTaken - numBikesLeftDest1);
+        }
+        System.out.println("Transport cost: " + cost);
+    }
+
+    public double getDistanceTotal() {
+        double dist = 0.0;
+        for (int vanId = 0; vanId < F; ++vanId) {
+            int originId = fleet[vanId][0];
+            int bikesTaken = fleet[vanId][1];
+            int dest1Id = fleet[vanId][2];
+            int numBikesLeftDest1 = fleet[vanId][3];
+            int dest2Id = fleet[vanId][4];
+            int numBikesLeftDest2 = fleet[vanId][5];    
+            Estacion origin = State.stations.get(originId);
+            if (dest1Id != -1) dist += getEuclideanDistance(origin.getCoordX(), origin.getCoordY(), State.stations.get(dest1Id).getCoordX(), State.stations.get(dest1Id).getCoordY());
+            if (dest1Id != -1 && dest2Id != -1) dist += getEuclideanDistance(State.stations.get(dest1Id).getCoordX(), State.stations.get(dest1Id).getCoordY(), State.stations.get(dest2Id).getCoordX(), State.stations.get(dest2Id).getCoordY());
+
+        }
+        return dist;
     }
 }
