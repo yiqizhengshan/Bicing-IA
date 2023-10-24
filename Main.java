@@ -16,6 +16,7 @@ import java.util.Properties;
 import java.util.Scanner;
 import java.util.Timer;
 
+
 public class Main {
     private static void printInstrumentation(Properties properties) {
         
@@ -45,12 +46,12 @@ public class Main {
         System.out.println("Modo del input: 0 automático, 1 manual");
         int modoInput = in.nextInt();
         if (modoInput == 0) {
-            initializationMode = 3;
-            mode = 2;
+            initializationMode = 1;
+            mode = 1;
             E = 25;
             B = 1250;
-            seed = 1234;
-            F = 20;
+            seed = 1233;
+            F = 5;
         }
         else {
             System.out.println("Modo de inicialización: 1 (EASY) o 2 (MEDIUM) o 3 (HARD)");
@@ -66,57 +67,63 @@ public class Main {
             System.out.println("Dame el número de furgonetas:");
             F = in.nextInt();
         }
-
-        Estaciones stations;
-        if (mode == 1) stations = new Estaciones(E, B, Estaciones.EQUILIBRIUM, seed);
-        else stations = new Estaciones(E, B, Estaciones.RUSH_HOUR, seed);
-
-        State initialState = new State(F, stations);
-        
-        //counter initialization
-        long tiempoInicio = System.currentTimeMillis();
-
-
-        if (initializationMode == 1) initialState.initialize_easy();
-        else if (initializationMode == 2) initialState.initialize_medium();
-        else initialState.initialize_hard();
-
         in.close();
 
-        // Create the Problem object
-        Problem p = new Problem(initialState,
-                new IA.Bicing.BicingSuccesorFunction(),
-                new IA.Bicing.BicingGoalTest(),
-                new IA.Bicing.BicingHeuristicFunction());
+        long[] executionTimes = new long[10];
+        double[] benefits = new double[10];
 
-        // Instantiate the search algorithm
-        // AStarSearch(new GraphSearch()) or IterativeDeepeningAStarSearch()
-        Search alg = new HillClimbingSearch();
-        // int iterations = 10000;
-        // int step = 
-        // int k = 125;
-        // float lambda = 0.0001;
-        // Search algSA = new SimulatedAnnealingSearch(iterations, k, lambda);
+        // Seeds
+        for (int i = 0; i < 11; ++i) {
+            int newSeed = seed + i;
+            Estaciones stations;
+            if (mode == 1) stations = new Estaciones(E, B, Estaciones.EQUILIBRIUM, newSeed);
+            else stations = new Estaciones(E, B, Estaciones.RUSH_HOUR, newSeed);
 
-        // Instantiate the SearchAgent object
-        SearchAgent agent = new SearchAgent(p, alg);
+            State initialState = new State(F, stations);
+            
+            //counter initialization
+            long tiempoInicio = System.currentTimeMillis();
+            
+            if (initializationMode == 1) initialState.initialize_easy();
+            else if (initializationMode == 2) initialState.initialize_medium();
+            else initialState.initialize_hard();
 
-        // Print initial state things
-        String results = new String("benefit: " + initialState.getBenefit() + " suppliedDemand: " + initialState.getSuppliedDemand() + " transportCost: " + initialState.getTransportCost() + " totalLength: " + initialState.getTotalLength());
-        String fleetState = initialState.getFleetState();
-            System.out.println(results + "\n" + fleetState);
-        //System.out.println("suppliedDemand: " + initialState.getSuppliedDemand());
+            // Create the Problem object
+            Problem p = new Problem(initialState,
+                    new IA.Bicing.BicingSuccesorFunction(),
+                    new IA.Bicing.BicingGoalTest(),
+                    new IA.Bicing.BicingHeuristicFunction());
 
-        // We print the results of the search
-        System.out.println();
-        printActions(agent.getActions());
-        printInstrumentation(agent.getInstrumentation());
+            // Hill Climbing
+            Search alg = new HillClimbingSearch();
 
-        long tiempoFin = System.currentTimeMillis();
-        long totalTiempo = tiempoFin - tiempoInicio;
-        System.out.println("Tiempo de ejecución: " + totalTiempo + " milisegundos");
-        System.out.println("----------------------------------");
-        // You can access also to the goal state using the
-        // method getGoalState of class Search
+            // Simulated Annealing
+            // int iterations = 100000;
+            // int step = 20;
+            // int k = 1;
+            // double lambda = 0.0001;
+            // Search alg = new SimulatedAnnealingSearch(step, iterations, k, lambda);
+
+            // Instantiate the SearchAgent object
+            SearchAgent agent = new SearchAgent(p, alg);
+            long tiempoFin = System.currentTimeMillis();
+
+            long totalTiempo = tiempoFin - tiempoInicio;
+            
+            // We print the results of the search
+            State finalState = (State) alg.getGoalState();
+
+            // printActions(agent.getActions());
+            // printInstrumentation(agent.getInstrumentation());
+
+            if (i != 0) {
+                executionTimes[i - 1] = totalTiempo;
+                benefits[i - 1] = finalState.getBenefit();
+            }
+        }
+        for (int i = 0; i < 10; ++i) {
+            System.out.println("Beneficio: " + benefits[i] + " Tiempo de ejecución: " + executionTimes[i] + " milisegun");
+        }
+        
     }
 }

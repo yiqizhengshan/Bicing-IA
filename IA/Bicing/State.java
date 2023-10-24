@@ -638,7 +638,7 @@ public class State {
             int originId = increasingBikesNeededStationId[i];
             fleet[i][0] = originId;
             fleet[i][1] = Math.max(-bikesNeeded[originId], 0); // en el caso de que coje 0 es que no hay mas de F estaciones con bicis sobrantes
-            bikesNeeded[originId] = 0;
+            if (fleet[i][1] > 0) bikesNeeded[originId] = 0;
         }
 
         for (int vanId = 0; vanId < F; ++vanId) {

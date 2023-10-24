@@ -19,9 +19,9 @@ public class BicingSuccesorFunctionSA implements SuccessorFunction {
         int vanId = myRandom.nextInt(F);
         int newOriginId = myRandom.nextInt(E);
         int newDestId = myRandom.nextInt(E);
-        int operatorId = myRandom.nextInt(4);
+        int operatorId = myRandom.nextInt(3);
 
-        State newState = (State) currentState;
+        State newState = new State(currentState);
         String operator, results, fleetState;
         // Devolver un sucesor random
         if (operatorId == 0) {
@@ -30,14 +30,15 @@ public class BicingSuccesorFunctionSA implements SuccessorFunction {
             newState.changeDestination1(vanId, newDestId);
 
             operator = new String("changeDestination1 " + vanId + " " + newDestId);
-            results = new String("benefit: " + newState.getBenefit() + " suppliedDemand: " + newState.getSuppliedDemand() + " transportCost: " + newState.getTransportCost() + " totalLength: " + copy.getTotalLength());
+            results = new String("benefit: " + newState.getBenefit() + " suppliedDemand: " + newState.getSuppliedDemand() + " transportCost: " + newState.getTransportCost() + " totalLength: " + newState.getTotalLength());
             fleetState = newState.getFleetState();
+
         } else if (operatorId == 1) {
             // Change Destination 2
             newState.changeDestination2(vanId, newDestId);
 
             operator = new String("changeDestination2 " + vanId + " " + newDestId);
-            results = new String("benefit: " + newState.getBenefit() + " suppliedDemand: " + newState.getSuppliedDemand() + " transportCost: " + newState.getTransportCost() + " totalLength: " + copy.getTotalLength());
+            results = new String("benefit: " + newState.getBenefit() + " suppliedDemand: " + newState.getSuppliedDemand() + " transportCost: " + newState.getTransportCost() + " totalLength: " + newState.getTotalLength());
             fleetState = newState.getFleetState();
         }
         else {
@@ -45,7 +46,7 @@ public class BicingSuccesorFunctionSA implements SuccessorFunction {
             newState.changeOrigin(vanId, newOriginId);
 
             operator = new String("changeOrigin " + vanId + " " + newOriginId);
-            results = new String("benefit: " + newState.getBenefit() + " suppliedDemand: " + newState.getSuppliedDemand() + " transportCost: " + newState.getTransportCost() + " totalLength: " + copy.getTotalLength());
+            results = new String("benefit: " + newState.getBenefit() + " suppliedDemand: " + newState.getSuppliedDemand() + " transportCost: " + newState.getTransportCost() + " totalLength: " + newState.getTotalLength());
             fleetState = newState.getFleetState();
         }
         retval.add(new Successor(new String(operator + "\n" + results + "\n" + fleetState), newState));
