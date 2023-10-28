@@ -1,4 +1,4 @@
-//BicingBoard.java
+// State.java
 package IA.Bicing;
 import java.util.ArrayList;
 
@@ -7,7 +7,7 @@ import java.util.ArrayList;
  */
 public class State {
     // originId, bikesTaken, destId1, numBikesLeftDest1, destId2, numBikesLeftDest2
-    private int[][] fleet; // .size .insert
+    private int[][] fleet;
     private int[] isStationVisited; // if not visited, -1
                                     // else, contains the id of the van that visits it
     private int[] bikesNeeded;
@@ -121,10 +121,13 @@ public class State {
 
     public Boolean isChangeDestination1ConditionOkay(int vanId, int newDestId) {
         int originId = fleet[vanId][0];
+        int dest1Id = fleet[vanId][2];
         int dest2Id = fleet[vanId][4];
-        Boolean newDestNeedsBikes = bikesNeeded[newDestId] > 0; //it was <, now >. Is the only change in thos function
-        if (newDestId == originId || !newDestNeedsBikes) return false;
+        if (originId == -1) return false;
+        if (newDestId == originId) return false;
+        if (newDestId == dest1Id) return false;
         if (newDestId == -1 && dest2Id != -1) return false;
+        if (newDestId != -1 && bikesNeeded[newDestId] <= 0) return false;
         return true;
     }
 
@@ -135,19 +138,6 @@ public class State {
         int numBikesLeftDest1 = fleet[vanId][3];
         int dest2Id = fleet[vanId][4];
         int numBikesLeftDest2 = fleet[vanId][5];
-        Boolean newDestNeedsBikes = bikesNeeded[newDestId] > 0; //it was <, now >. Is the only change in thos function
-
-        if (newDestId == originId || !newDestNeedsBikes) return;
-        // If we want to eliminate 1st destination, we can't have a
-        // second destination
-        if (newDestId == -1 && dest2Id != -1) return;
-
-        // DEBUGGING
-        // System.out.println("---- BEFORE changeDest1: " + vanId + " " + newDestId + " -----");
-        // printBikesNeeded();
-        // printVan(vanId);
-        // printState();
-        // System.out.println();
 
         // Reset transport cost
         double previousTransportCost1 = 0;
@@ -206,7 +196,6 @@ public class State {
         if (dest2Id != -1) this.suppliedDemand += numBikesLeftDest2;
 
         // Calculate new benefit
-
         this.transportCost = 0.0;
         for (int vanid = 0; vanid < F; ++vanid) {
             int originid = fleet[vanid][0];
@@ -221,21 +210,18 @@ public class State {
         }
 
         this.benefit = (double) suppliedDemand - transportCost;
-        // DEBUGGING
-        // System.out.println("--------- NEW ---------");
-        // printBikesNeeded();
-        // printVan(vanId);
-        // printState();
-        // System.out.println("---------------------------");
     }
 
     public Boolean isChangeDestination2ConditionOkay(int vanId, int newDestId) {
         int originId = fleet[vanId][0];
         int dest1Id = fleet[vanId][2];
         int dest2Id = fleet[vanId][4];
-        Boolean newDestNeedsBikes = bikesNeeded[newDestId] > 0;
-        if (newDestId == originId || !newDestNeedsBikes) return false;
-        if (newDestId == dest1Id || newDestId == dest2Id || dest1Id == -1) return false;
+        if (originId == -1) return false;
+        if (newDestId == originId) return false;
+        if (newDestId == dest1Id) return false;
+        if (newDestId == dest2Id) return false;
+        if (dest1Id == -1) return false;
+        if (newDestId != -1 && bikesNeeded[newDestId] <= 0) return false;
         return true;
     }
 
@@ -246,19 +232,6 @@ public class State {
         int numBikesLeftDest1 = fleet[vanId][3];
         int dest2Id = fleet[vanId][4];
         int numBikesLeftDest2 = fleet[vanId][5];
-        Boolean newDestNeedsBikes = bikesNeeded[newDestId] > 0;
-
-        if (newDestId == originId || !newDestNeedsBikes) return;
-        if (newDestId == dest1Id || newDestId == dest2Id || dest1Id == -1) return;
-        
-        //if (newDestId == -1 && dest2Id != -1) return; (del change1)
-
-        // DEBUGGING
-        // System.out.println("---- BEFORE changeDest2: " + vanId + " " + newDestId + " -----");
-        // printBikesNeeded();
-        // printVan(vanId);
-        // printState();
-        // System.out.println();
 
         if (dest2Id != -1) {
             // Reset transport cost
@@ -274,9 +247,6 @@ public class State {
 
             // Reset bikesTaken
             bikesTaken -= numBikesLeftDest2;
-
-            // Reset benefit
-            this.benefit = (double) suppliedDemand - transportCost;
         }
         dest2Id = fleet[vanId][4] = newDestId;
         if (dest2Id != -1) {    // Cambiamos dest 2
@@ -285,7 +255,6 @@ public class State {
 
             // Update van's dest2 and bikesLeft at dest2
             fleet[vanId][5] = numBikesLeftDest2 = Math.min(bikesTaken - numBikesLeftDest1, bikesNeeded[dest2Id]);
-            // System.out.print(numBikesLeftDest2 + " " + (bikesTaken - numBikesLeftDest1) + " " + bikesNeeded[dest2Id] + "\n");
 
             // Update bikesNeeded, bikesTaken, 
             bikesNeeded[originId] += numBikesLeftDest2;
@@ -294,7 +263,6 @@ public class State {
             if (fleet[vanId][5] == 0) { // If van has left all bikesTaken to dest1, don't go to dest2
                 fleet[vanId][5] = -1; //convenio de no segundo destino
                 fleet[vanId][4] = -1;
-                // System.out.print("returned\n");
                 return;
             }
 
@@ -307,10 +275,9 @@ public class State {
 
             // Update supplied demand
             this.suppliedDemand += numBikesLeftDest2;
-            // eso es
-            // Calculate new benefit
         }
 
+        // Calculate transport cost
         this.transportCost = 0.0;
         for (int vanid = 0; vanid < F; ++vanid) {
             int originid = fleet[vanid][0];
@@ -318,20 +285,11 @@ public class State {
             int dest1id = fleet[vanid][2];
             int numbikesLeftDest1 = fleet[vanid][3];
             int dest2id = fleet[vanid][4];
-            int numbikesLeftDest2 = fleet[vanid][5];
 
             if (dest1id != -1)  this.transportCost += getVanTransportCost(originid, dest1id, bikestaken);
             if (dest1id != -1 && dest2id != -1) this.transportCost += getVanTransportCost(dest1id, dest2id, bikestaken - numbikesLeftDest1);
         }
-
-            
-            this.benefit = (double) suppliedDemand - transportCost;
-        // DEBUGGING
-        // System.out.println("--------- NEW ---------");
-        // printBikesNeeded();
-        // printVan(vanId);
-        // printState();
-        // System.out.println("---------------------------");
+        this.benefit = (double) suppliedDemand - transportCost;
     }
 
     public Boolean isChangeOriginConditionOkay(int fleetId, int newOriginId) {
@@ -344,25 +302,12 @@ public class State {
     }
 
     public void changeOrigin(int fleetId, int newOriginId) {
-        // Condition: newOriginId != dest1Id && newOriginId != dest2Id and newOriginId has excess bikes
-        // !Problem: how to handle the case where origin has no sufficient excess bikes for
-        // both destinations?
-
-
-        //Arreglar caso en el que el Origen es alguien que no tiene bicis
-
         int originId = fleet[fleetId][0];
         int bikesTaken = fleet[fleetId][1];
         int dest1Id = fleet[fleetId][2];
         int numBikesLeftDest1 = fleet[fleetId][3];
         int dest2Id = fleet[fleetId][4];
         int numBikesLeftDest2 = fleet[fleetId][5];
-        Boolean newDestNeedsBikes = bikesNeeded[newOriginId] >= 0; //it was <, now >. Is the only change in thos function. Ahora lo he cambiado a >=
-
-        //can't change if newOriginId has fleet, or if it's the same origin, or if it's the same dest1, or if it's the same dest2, or it has no excess bikes
-        if (newOriginId == originId || newDestNeedsBikes || newOriginId == -1 || newOriginId == dest1Id || newOriginId == dest2Id || isStationVisited[newOriginId] != -1) return;
-
-        // System.out.print("!Applying changeOrigin operator!\n");
 
         // Reset transport cost
         double previousTransportCost1 = 0;
@@ -451,7 +396,6 @@ public class State {
             int dest1id = fleet[vanid][2];
             int numbikesLeftDest1 = fleet[vanid][3];
             int dest2id = fleet[vanid][4];
-            int numbikesLeftDest2 = fleet[vanid][5];
 
             if (dest1id != -1)  this.transportCost += getVanTransportCost(originid, dest1id, bikestaken);
             if (dest1id != -1 && dest2id != -1) this.transportCost += getVanTransportCost(dest1id, dest2id, bikestaken - numbikesLeftDest1);
@@ -459,10 +403,6 @@ public class State {
 
         // Calculate new benefit
         this.benefit = (double) suppliedDemand - transportCost;
-
-        //System.out.print("!Operator swapOrigin applied!\n");
-        // printState();
-
     }
 
     /* ------------------- Heuristic function ------------------- */
