@@ -8,8 +8,8 @@ import java.util.Random;
 
 public class BicingSuccesorFunctionSA implements SuccessorFunction {
 
-    public List getSuccessors(Object state) {
-        ArrayList retval = new ArrayList();
+    public List<Object> getSuccessors(Object state) {
+        ArrayList<Object> retval = new ArrayList<Object>();
         State currentState = (State) state;
 
         int F = State.getF();
