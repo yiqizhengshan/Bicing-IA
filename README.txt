@@ -8,13 +8,14 @@ Para ejecutar el programa:
   javac Main.java
 
 4. Ejecutar el programa proporcionando los parámetros adecuados:
-  java Main <algorithmMode> <initializationMode> <heuristicType> <demandMode> <E> <F> <B>
+  java Main <algorithmMode> <initializationMode> <demandMode> <heuristicType> <E> <F> <B>
     <seed> [<iterations> <step> <k> <lambda>]
 
       Definicion de los parametros:
       - algorithmMode (algoritmo utilizado): "hc" (Hill Climbing) o "sa" (Simulated Annealing)
       - initializationMode: "easy", "medium" o "hard"
       - demandMode (tipo de demanda): "equi" o "rush"
+      - heuristicType: 1 (sin coste de transporte) o 2 (con coste de trasporte)
       - E (num de estaciones): <entero positivo>
       - F (num de furgonetas): <entero positivo>
       - B (num de bicis): <entero positivo>
