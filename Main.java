@@ -3,6 +3,7 @@
 import IA.Bicing.*;
 
 import aima.search.framework.GraphSearch;
+import aima.search.framework.HeuristicFunction;
 import aima.search.framework.Problem;
 import aima.search.framework.Search;
 import aima.search.framework.SearchAgent;
@@ -41,10 +42,11 @@ public class Main {
         String algorithmMode = args[0]; // hc, sa
         String initializationMode = args[1];    // easy, medium, hard
         String demandMode = args[2];    // equi, rush
-        int E = Integer.parseInt(args[3]);
-        int F = Integer.parseInt(args[4]);
-        int B = Integer.parseInt(args[5]);
-        int seed = Integer.parseInt(args[6]);
+        int heuristicType = Integer.parseInt(args[3]); // 1, 2
+        int E = Integer.parseInt(args[4]);
+        int F = Integer.parseInt(args[5]);
+        int B = Integer.parseInt(args[6]);
+        int seed = Integer.parseInt(args[7]);
         
         SuccessorFunction succesorFunc;
         Search search = null;
@@ -53,10 +55,10 @@ public class Main {
             succesorFunc = new IA.Bicing.BicingSuccesorFunction();
         }
         else if (algorithmMode.equals("sa")) {
-            int iterations = Integer.parseInt(args[7]);
-            int step = Integer.parseInt(args[8]);
-            int k = Integer.parseInt(args[9]);
-            double lambda = Double.parseDouble(args[10]);
+            int iterations = Integer.parseInt(args[8]);
+            int step = Integer.parseInt(args[9]);
+            int k = Integer.parseInt(args[10]);
+            double lambda = Double.parseDouble(args[11]);
             search = new SimulatedAnnealingSearch(iterations, step, k, lambda);
             succesorFunc = new IA.Bicing.BicingSuccesorFunctionSA();
         }
@@ -74,9 +76,13 @@ public class Main {
             System.out.println("Incorrect demandMode format: equi or rush");
             return;
         }
-        
-        State initialState = new State(F, stations);
 
+        if (heuristicType != 1 && heuristicType != 2) {
+            System.out.println("Incorrect heuristic function format: 1 (no transport cost) or 2 (with transport cost)");
+            return;
+        }
+        
+        State initialState = new State(F, stations, heuristicType);
         long tiempoInicio = System.currentTimeMillis();
         if (initializationMode.equals("easy"))
             initialState.initialize_easy();
@@ -105,7 +111,7 @@ public class Main {
         }
         // Print the results of the search
         State finalState = (State) search.getGoalState();
-        System.out.print("time: " + totalTiempo + " ");
+        System.out.print("time: " + totalTiempo + "ms ");
         finalState.printState();
     }
 }

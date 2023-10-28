@@ -15,16 +15,16 @@ public class State {
                                         // else, false
 
     private double transportCost;
-    private double benefit; // benefit = suppliedDemand - transportCost;
     private int suppliedDemand; //
 
     private static Estaciones stations;
     private static int F; // Max Furgonetas
     private static int E; // Number of stations
+    private static int heuristicType;
 
     /* ------------------- Constructor ------------------- */
 
-    public State(int n_van, Estaciones Est) {
+    public State(int n_van, Estaciones Est, int heuristicType) {
         State.stations = Est;
         State.F = n_van;
         State.E = Est.size();
@@ -35,8 +35,8 @@ public class State {
         intializeTwoDestinations();
 
         this.transportCost = 0;
-        this.benefit = 0;
         this.suppliedDemand = 0;
+        State.heuristicType = heuristicType;
     }
 
     // Copy constructor
@@ -46,7 +46,6 @@ public class State {
         this.setBikesNeeded(state.getBikesNeeded());
 
         this.setTransportCost(state.getTransportCost());
-        this.setBenefit(state.getBenefit());
         this.setSuppliedDemand(state.getSuppliedDemand());
     }
 
@@ -113,10 +112,6 @@ public class State {
         // Update supplied demand
         if (dest1Id != -1) this.suppliedDemand += numBikesLeftDest1;
         if (dest2Id != -1) this.suppliedDemand += numBikesLeftDest2;
-
-        // Calculate new benefit
-        this.benefit = (double) suppliedDemand - transportCost;
-        
     }
 
     public Boolean isChangeDestination1ConditionOkay(int vanId, int newDestId) {
@@ -195,7 +190,6 @@ public class State {
         if (dest1Id != -1) this.suppliedDemand += numBikesLeftDest1;
         if (dest2Id != -1) this.suppliedDemand += numBikesLeftDest2;
 
-        // Calculate new benefit
         this.transportCost = 0.0;
         for (int vanid = 0; vanid < F; ++vanid) {
             int originid = fleet[vanid][0];
@@ -208,8 +202,6 @@ public class State {
             if (dest1id != -1)  this.transportCost += getVanTransportCost(originid, dest1id, bikestaken);
             if (dest1id != -1 && dest2id != -1) this.transportCost += getVanTransportCost(dest1id, dest2id, bikestaken - numbikesLeftDest1);
         }
-
-        this.benefit = (double) suppliedDemand - transportCost;
     }
 
     public Boolean isChangeDestination2ConditionOkay(int vanId, int newDestId) {
@@ -289,7 +281,6 @@ public class State {
             if (dest1id != -1)  this.transportCost += getVanTransportCost(originid, dest1id, bikestaken);
             if (dest1id != -1 && dest2id != -1) this.transportCost += getVanTransportCost(dest1id, dest2id, bikestaken - numbikesLeftDest1);
         }
-        this.benefit = (double) suppliedDemand - transportCost;
     }
 
     public Boolean isChangeOriginConditionOkay(int fleetId, int newOriginId) {
@@ -400,14 +391,11 @@ public class State {
             if (dest1id != -1)  this.transportCost += getVanTransportCost(originid, dest1id, bikestaken);
             if (dest1id != -1 && dest2id != -1) this.transportCost += getVanTransportCost(dest1id, dest2id, bikestaken - numbikesLeftDest1);
         }
-
-        // Calculate new benefit
-        this.benefit = (double) suppliedDemand - transportCost;
     }
 
     /* ------------------- Heuristic function ------------------- */
     public double heuristic() {
-        return -this.benefit;
+        return -(this.getBenefit());
     }
 
     /* ------------------- Goal test ------------------- */
@@ -435,7 +423,10 @@ public class State {
     }
 
     public double getBenefit() {
-        return this.benefit;
+        if (State.heuristicType == 1) {
+            return this.suppliedDemand;
+        }
+        return this.suppliedDemand - this.transportCost;
     }
 
     public int getSuppliedDemand() {
@@ -492,10 +483,6 @@ public class State {
 
     public void setTransportCost(final double transportCost) {
         this.transportCost = transportCost;
-    }
-
-    public void setBenefit(final double benefit) {
-        this.benefit = benefit;
     }
 
     public void setSuppliedDemand(final int suppliedDemand) {
@@ -591,8 +578,6 @@ public class State {
             bikesNeeded[j+i] -= fleet[j+i][1];
             this.transportCost += getVanTransportCost(fleet[j+i][0], fleet[j+i][2], fleet[j+i][1]);
         }
-        
-        this.benefit = this.suppliedDemand - this.transportCost;
     }
 
     public void initialize_hard() {
@@ -653,19 +638,6 @@ public class State {
                 }
             }
         }
-
-        this.benefit = this.suppliedDemand - this.transportCost;
-        
-        // int originId = 0;
-        // for (int vanId = 0; vanId < F; vanId++) {
-        //     fleet[vanId][0] = originId;
-        //     fleet[vanId][1] = Math.max(-bikesNeeded[originId], 0);
-        //     ++originId;
-        // }
-        // for (int dest1Id = E - 1; dest1Id >= 0; --dest1Id) {
-        //     // Math.min()
-        //     // fleet[vanId][3]
-        // }
     }
 
     public void initialize_medium() {
@@ -676,14 +648,7 @@ public class State {
         while (i < E && j < E && size_fleet >= 0) {
             i = 0;
             j = 0;
-
-
-            /* 5 4 -10 2
-            0 4 -5 2
-            0 0 -1 2 */
             
-            // printBikesNeeded();
-            //System.out.println("initialize_medium");
             //llegas al primer negativo/bicis sobran y si ya tiene 2 destinos paso al siguiente
             while (i < E && (bikesNeeded[i] >= 0 || two_destinations[i] == true)) {
                 ++i;
@@ -778,10 +743,6 @@ public class State {
             if (fleet[l][4] != -1) transportCost += calcula_cost(fleet[l][2], fleet[l][4], fleet[l][1] - fleet[l][3]);
             ++l;
         }
-        //set benefit
-        benefit = suppliedDemand - transportCost;
-
-        // printState();
     }
 
     /* Auxiliary functions */
@@ -846,7 +807,12 @@ public class State {
     }
 
     public void printState() {
-        System.out.println("benefit: " + benefit + " transportCost: " + transportCost + " suppliedDemand: " + suppliedDemand + "\n");
+        if (heuristicType == 1) {
+            System.out.println("benefit: " + this.getBenefit());
+        }
+        else {
+            System.out.println("benefit: " + this.getBenefit() + " transportCost: " + transportCost + " suppliedDemand: " + suppliedDemand);
+        }
     }
 
     public String getFleetState() {

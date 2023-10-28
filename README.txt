@@ -8,7 +8,7 @@ Para ejecutar el programa:
   javac Main.java
 
 4. Ejecutar el programa proporcionando los parámetros adecuados:
-  java Main.java <algorithmMode> <initializationMode> <demandMode> <E> <F> <B>
+  java Main.java <algorithmMode> <initializationMode> <heuristicType> <demandMode> <E> <F> <B>
     <seed> [<iterations> <step> <k> <lambda>]
 
   Donde:
@@ -27,4 +27,4 @@ Para ejecutar el programa:
   - lambda: <double positivo>
 
   Un ejemplo de comando para ejecutar con los parámetros por defecto del enunciado:
-  java Main.java hc hard equi 25 5 1250 1234
+  java Main.java hc hard equi 1 25 5 1250 1234
