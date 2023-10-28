@@ -11,20 +11,20 @@ Para ejecutar el programa:
   java Main <algorithmMode> <initializationMode> <heuristicType> <demandMode> <E> <F> <B>
     <seed> [<iterations> <step> <k> <lambda>]
 
-  Donde:
-  - algorithmMode (algoritmo utilizado): "hc" (Hill Climbing) o "sa" (Simulated Annealing)
-  - initializationMode: "easy", "medium" o "hard"
-  - demandMode (tipo de demanda): "equi" o "rush"
-  - E (num de estaciones): <entero positivo>
-  - F (num de furgonetas): <entero positivo>
-  - B (num de bicis): <entero positivo>
-  - seed: <entero positivo>
+      Definicion de los parametros:
+      - algorithmMode (algoritmo utilizado): "hc" (Hill Climbing) o "sa" (Simulated Annealing)
+      - initializationMode: "easy", "medium" o "hard"
+      - demandMode (tipo de demanda): "equi" o "rush"
+      - E (num de estaciones): <entero positivo>
+      - F (num de furgonetas): <entero positivo>
+      - B (num de bicis): <entero positivo>
+      - seed: <entero positivo>
 
-  Los parametros opcionales se deben proporcionar si algorithmMode == "sa":
-  - iterations: <entero positivo>
-  - step: <entero positivo>
-  - k: <entero positivo>
-  - lambda: <double positivo>
+      Los parametros opcionales se deben proporcionar si algorithmMode == "sa":
+      - iterations: <entero positivo>
+      - step: <entero positivo>
+      - k: <entero positivo>
+      - lambda: <double positivo>
 
-  Un ejemplo de comando para ejecutar con los parámetros por defecto del enunciado:
+5. Un ejemplo de comando para ejecutar con los parámetros por defecto del enunciado:
   java Main hc hard equi 1 25 5 1250 1234
