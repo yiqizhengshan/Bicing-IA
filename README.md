@@ -1,7 +1,7 @@
-#Bicing IA
-<font size="4">Primera práctica de la asignatura de IA en la FIB.
-Nota obtenida: 11
-</font>
+# Bicing IA
+
+<font size="4">Primera práctica de la asignatura de IA en la FIB. </font>
+<font size="4">Nota obtenida: 11 </font>
 
 ## Cómo ejecutar el programa
 
