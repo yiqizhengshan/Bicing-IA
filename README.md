@@ -56,8 +56,11 @@
 ## Hecho por
 
 Jordi Muñoz - [@jordimunozflorensa](https://github.com/jordimunozflorensa)
+
 Jianing Xu - [@jianingxu1](https://github.com/jianingxu1)
+
 Yiqi Zheng - [@yiqizhengshan](https://github.com/yiqizhengshan)
+
 
 Link del proyecto: [https://github.com/yiqizhengshan/Bicing-IA](https://github.com/yiqizhengshan/Bicing-IA)
 
