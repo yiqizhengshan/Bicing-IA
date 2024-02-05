@@ -1,14 +1,7 @@
-<div align="center">
-
-  <h3 align="center">Bicing IA</h3>
-
-  <p align="center">
-    Primera práctica de la asignatura de IA en la FIB
-  </p>
-
-</div>
-
-
+#Bicing IA
+<font size="4">Primera práctica de la asignatura de IA en la FIB.
+Nota obtenida: 11
+</font>
 
 ## Cómo ejecutar el programa
 
@@ -51,7 +44,6 @@
   ```sh
   java Main sa hard equi 2 25 5 1250 1234 100000 20 125 0.0001
   ```
-<br>
 
 ## Hecho por
 
@@ -61,10 +53,9 @@ Jianing Xu - [@jianingxu1](https://github.com/jianingxu1)
 
 Yiqi Zheng - [@yiqizhengshan](https://github.com/yiqizhengshan)
 
+<br>
 
 Link del proyecto: [https://github.com/yiqizhengshan/Bicing-IA](https://github.com/yiqizhengshan/Bicing-IA)
-
-<br>
 
 ## License
 
